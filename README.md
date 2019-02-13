@@ -144,17 +144,23 @@ See
     ````
 
 1. Modify ${GIT_REPOSITORY_DIR}/rancher-answers/mock-data-generator.yaml
-    1. **image.repository**: Template: "${DOCKER_REGISTRY_URL}/senzing/mock-data-generator"
+    1. **image.repository**
+        1. Template: "${DOCKER_REGISTRY_URL}/senzing/mock-data-generator"
         1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/mock-data-generator"`
-    1. **senzing.kafkaBootstrapServerHost**:  Use hostname of your Kafka server.
+    1. **senzing.kafkaBootstrapServerHost**
+        1. Use hostname of your Kafka server.
 1. Modify ${GIT_REPOSITORY_DIR}/rancher-answers/phpmyadmin.yaml
-    1. **db.host**: Use hostname of your mySQL server.
+    1. **db.host**
+        1. Use hostname of your mySQL server.
 1. Modify ${GIT_REPOSITORY_DIR}/rancher-answers/stream-loader.yaml
-    1. **image.repository**: Template: "${DOCKER_REGISTRY_URL}/senzing/mock-data-generator"
+    1. **image.repository**
+        1. Template: "${DOCKER_REGISTRY_URL}/senzing/mock-data-generator"
         1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/stream-loader"`
-    1. **senzing.databaseUrl**: Template:  "mysql://g2:g2@${MYSQL_HOSTNAME}:3306/G2"
+    1. **senzing.databaseUrl**
+        1. Template:  "mysql://g2:g2@${MYSQL_HOSTNAME}:3306/G2"
         1. Example: `mysql://g2:g2@my.sql-server.com:3306/G2`
-    1. **senzing.kafkaBootstrapServerHost**:  Use hostname of your Kafka server.
+    1. **senzing.kafkaBootstrapServerHost**
+        1. Use hostname of your Kafka server.
 
 ### Set default context
 
@@ -217,7 +223,8 @@ See
     ````
 
 1. Modify ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-opt-senzing.yaml
-    1. **namespace**: Template: "${RANCHER_PREFIX}-namespace-1"
+    1. **namespace**
+        1. Template: "${RANCHER_PREFIX}-namespace-1"
         1. Example: `namespace: mytest-namespace-1`
 
 1. Create "persistent volume" for `/opt/senzing` directory. Example:
