@@ -140,7 +140,8 @@ See
 1. Copy example answer files. Example:
 
     ```console
-    cp ${GIT_REPOSITORY_DIR}/rancher-answers/examples/*.yaml ${GIT_REPOSITORY_DIR}/rancher-answers
+    mkdir ${GIT_REPOSITORY_DIR}/rancher-answers
+    cp ${GIT_REPOSITORY_DIR}/rancher-answer-examples/*.yaml ${GIT_REPOSITORY_DIR}/rancher-answers
     ````
 
 1. Modify ${GIT_REPOSITORY_DIR}/rancher-answers/mock-data-generator.yaml
@@ -219,7 +220,8 @@ See
 1. Copy example kubernetes files. Example:
 
     ```console
-    cp ${GIT_REPOSITORY_DIR}/kubernetes/examples/*.yaml ${GIT_REPOSITORY_DIR}/kubernetes
+    mkdir ${GIT_REPOSITORY_DIR}/kubernetes
+    cp ${GIT_REPOSITORY_DIR}/kubernetes-examples/*.yaml ${GIT_REPOSITORY_DIR}/kubernetes
     ````
 
 1. Modify ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-opt-senzing.yaml

@@ -1,4 +1,4 @@
-'image.repository': "data.dockter.com:5000/senzing/mock-data-generator"
+'image.repository': "my.docker-registry.com:5000/senzing/mock-data-generator"
 'image.tag': "latest"
 'senzing.subcommand': "url-to-kafka"
 'senzing.kafkaBootstrapServerHost': "my-kafka-kafka"
