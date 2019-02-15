@@ -24,8 +24,10 @@ The following diagram shows the relationship of the Rancher apps, docker contain
     1. [Install Kafka test client](#install-kafka-test-client)
     1. [Install mySQL](#install-mysql)
     1. [Install phpMyAdmin](#install-phpmyadmin)
+    1. [Test access to senzing docker images](#test-access-to-senzing-docker-images)
     1. [Install mock-data-generator](#install-mock-data-generator)
     1. [Install stream-loader](#install-stream-loader)
+    1. [Install senzing-api-server](#install-senzing-api-server)
 1. [Cleanup](#cleanup)
     1. [Switch context for delete](#switch-context-for-delete)
     1. [Delete everything in project](#delete-everything-in-project)
@@ -93,7 +95,7 @@ See
 1. Make Senzing docker images.
 
     ```console
-    sudo docker build --tag senzing/hello-world https://github.com/senzing/docker-hello-world.git    
+    sudo docker build --tag senzing/hello-world https://github.com/senzing/docker-hello-world.git
     sudo docker build --tag senzing/mock-data-generator https://github.com/senzing/mock-data-generator.git
     sudo docker build --tag senzing/python-base https://github.com/senzing/docker-python-base.git
     sudo docker build --tag senzing/stream-loader https://github.com/senzing/stream-loader.git
@@ -103,7 +105,7 @@ See
 
 #### Docker registry
 
-1. If you need to create a local docker registry, see
+1. If you need to create a private docker registry, see
        [HOWTO - Install docker registry server](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/install-docker-registry-server.md).
 1. Set environment variable. Example:
 
@@ -111,12 +113,12 @@ See
     export DOCKER_REGISTRY_URL=my.docker-registry.com:5000
     ```
 
-1. Add Senzing docker images to local docker registry.
+1. Add Senzing docker images to private docker registry.
 
     ```console
     sudo docker tag senzing/hello-world ${DOCKER_REGISTRY_URL}/senzing/hello-world
     sudo docker push ${DOCKER_REGISTRY_URL}/senzing/hello-world
-    
+
     sudo docker tag senzing/mock-data-generator ${DOCKER_REGISTRY_URL}/senzing/mock-data-generator
     sudo docker push ${DOCKER_REGISTRY_URL}/senzing/mock-data-generator
 
@@ -356,6 +358,9 @@ See
 
 1. If both applications work, then Senzing docker images have been properly registered in your private
    docker registry and Rancher can retrieve the images.
+   1. If applications do not work, revisit
+      "[Senzing docker images](#senzing-docker-images)" and
+      "[Docker registry](#docker-registry)".
 1. Delete the test apps.
 
     ```console
