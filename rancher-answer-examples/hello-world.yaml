@@ -1,0 +1,3 @@
+'image.repository': "my.docker-registry.com:5000/senzing/hello-world"
+'image.tag': "latest"
+'senzing.sleepTime': 60
