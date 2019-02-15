@@ -155,6 +155,10 @@ See
     cp ${GIT_REPOSITORY_DIR}/rancher-answer-examples/*.yaml ${GIT_REPOSITORY_DIR}/rancher-answers
     ````
 
+1. Modify ${GIT_REPOSITORY_DIR}/rancher-answers/hello-world.yaml
+    1. **image.repository**
+        1. Template: "${DOCKER_REGISTRY_URL}/senzing/hello-world"
+        1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/hello-world"`  
 1. Modify ${GIT_REPOSITORY_DIR}/rancher-answers/mock-data-generator.yaml
     1. **image.repository**
         1. Template: "${DOCKER_REGISTRY_URL}/senzing/mock-data-generator"
@@ -164,6 +168,10 @@ See
 1. Modify ${GIT_REPOSITORY_DIR}/rancher-answers/phpmyadmin.yaml
     1. **db.host**
         1. Use hostname of your mySQL server.
+1. Modify ${GIT_REPOSITORY_DIR}/rancher-answers/senzing-api-server.yaml
+    1. **image.repository**
+        1. Template: "${DOCKER_REGISTRY_URL}/senzing/senzing-api-server"
+        1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/senzing-api-server"`        
 1. Modify ${GIT_REPOSITORY_DIR}/rancher-answers/stream-loader.yaml
     1. **image.repository**
         1. Template: "${DOCKER_REGISTRY_URL}/senzing/mock-data-generator"
@@ -327,7 +335,9 @@ See
     ````
 
 1. Open browser to [localhost:8081](http://localhost:8081)
-    1. Login (mysqlUser/mysqlPassword in [rancher-answers/mysql.yaml](rancher-answers/mysql.yaml))
+    1. Login 
+       1. mysqlUser/mysqlPassword in `rancher-answers/mysql.yaml`
+       1. Default: username: g2  password: g2
     1. On left-hand navigation, select "G2" database.
     1. Select "Import" tab.
     1. Click "Browse..." button.
@@ -336,7 +346,7 @@ See
 
 ### Test access to senzing docker images
 
-1. Get Docker image from `hub.docker.com`. Example:
+1. Get Docker image from public `hub.docker.com` Docker registry. Example:
 
     ```console
     rancher app install \
@@ -394,6 +404,8 @@ See
 
 ### Install senzing-api-server
 
+**Warning:** this is still a work-in-progress.  Most likely it will not work.
+
 1. Example:
 
     ```console
@@ -420,6 +432,7 @@ See
 1. Example:
 
     ```console
+    rancher app delete ${RANCHER_PREFIX}-senzing-api-server
     rancher app delete ${RANCHER_PREFIX}-senzing-stream-loader
     rancher app delete ${RANCHER_PREFIX}-senzing-mock-data-generator
     rancher app delete ${RANCHER_PREFIX}-senzing-hello-world-on-hub-docker-com

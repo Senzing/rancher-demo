@@ -9,7 +9,7 @@ metadata:
   namespace: my-namespace-1
 spec:
   accessModes:
-  - ReadWriteOnce
+  - ReadWriteMany
   resources:
     requests:
       storage: 10Gi
