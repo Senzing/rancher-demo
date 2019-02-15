@@ -1,0 +1,4 @@
+'image.repository': "my.docker-registry.com:5000/senzing/senzing-api-server"
+'image.tag': "latest"
+'senzing.concurrency': 10
+'senzing.optSenzingClaim': "opt-senzing-claim"

@@ -24,8 +24,10 @@ The following diagram shows the relationship of the Rancher apps, docker contain
     1. [Install Kafka test client](#install-kafka-test-client)
     1. [Install mySQL](#install-mysql)
     1. [Install phpMyAdmin](#install-phpmyadmin)
+    1. [Test access to senzing docker images](#test-access-to-senzing-docker-images)
     1. [Install mock-data-generator](#install-mock-data-generator)
     1. [Install stream-loader](#install-stream-loader)
+    1. [Install senzing-api-server](#install-senzing-api-server)
 1. [Cleanup](#cleanup)
     1. [Switch context for delete](#switch-context-for-delete)
     1. [Delete everything in project](#delete-everything-in-project)
@@ -93,14 +95,17 @@ See
 1. Make Senzing docker images.
 
     ```console
+    sudo docker build --tag senzing/hello-world https://github.com/senzing/docker-hello-world.git
     sudo docker build --tag senzing/mock-data-generator https://github.com/senzing/mock-data-generator.git
     sudo docker build --tag senzing/python-base https://github.com/senzing/docker-python-base.git
     sudo docker build --tag senzing/stream-loader https://github.com/senzing/stream-loader.git
     ```
 
+1. Build [senzing/senzing-api-server](https://github.com/Senzing/senzing-api-server#using-docker) docker image.
+
 #### Docker registry
 
-1. If you need to create a local docker registry, see
+1. If you need to create a private docker registry, see
        [HOWTO - Install docker registry server](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/install-docker-registry-server.md).
 1. Set environment variable. Example:
 
@@ -108,14 +113,20 @@ See
     export DOCKER_REGISTRY_URL=my.docker-registry.com:5000
     ```
 
-1. Add Senzing docker images to local docker registry.
+1. Add Senzing docker images to private docker registry.
 
     ```console
+    sudo docker tag senzing/hello-world ${DOCKER_REGISTRY_URL}/senzing/hello-world
+    sudo docker push ${DOCKER_REGISTRY_URL}/senzing/hello-world
+
     sudo docker tag senzing/mock-data-generator ${DOCKER_REGISTRY_URL}/senzing/mock-data-generator
     sudo docker push ${DOCKER_REGISTRY_URL}/senzing/mock-data-generator
 
     sudo docker tag senzing/stream-loader ${DOCKER_REGISTRY_URL}/senzing/stream-loader
     sudo docker push ${DOCKER_REGISTRY_URL}/senzing/stream-loader
+
+    sudo docker tag senzing/senzing-api-server ${DOCKER_REGISTRY_URL}/senzing/senzing-api-server
+    sudo docker push ${DOCKER_REGISTRY_URL}/senzing/senzing-api-server
     ```
 
 ### Set environment variables
@@ -144,6 +155,10 @@ See
     cp ${GIT_REPOSITORY_DIR}/rancher-answer-examples/*.yaml ${GIT_REPOSITORY_DIR}/rancher-answers
     ````
 
+1. Modify ${GIT_REPOSITORY_DIR}/rancher-answers/hello-world.yaml
+    1. **image.repository**
+        1. Template: "${DOCKER_REGISTRY_URL}/senzing/hello-world"
+        1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/hello-world"`  
 1. Modify ${GIT_REPOSITORY_DIR}/rancher-answers/mock-data-generator.yaml
     1. **image.repository**
         1. Template: "${DOCKER_REGISTRY_URL}/senzing/mock-data-generator"
@@ -153,6 +168,10 @@ See
 1. Modify ${GIT_REPOSITORY_DIR}/rancher-answers/phpmyadmin.yaml
     1. **db.host**
         1. Use hostname of your mySQL server.
+1. Modify ${GIT_REPOSITORY_DIR}/rancher-answers/senzing-api-server.yaml
+    1. **image.repository**
+        1. Template: "${DOCKER_REGISTRY_URL}/senzing/senzing-api-server"
+        1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/senzing-api-server"`        
 1. Modify ${GIT_REPOSITORY_DIR}/rancher-answers/stream-loader.yaml
     1. **image.repository**
         1. Template: "${DOCKER_REGISTRY_URL}/senzing/mock-data-generator"
@@ -316,12 +335,48 @@ See
     ````
 
 1. Open browser to [localhost:8081](http://localhost:8081)
-    1. Login (mysqlUser/mysqlPassword in [rancher-answers/mysql.yaml](rancher-answers/mysql.yaml))
+    1. Login 
+       1. mysqlUser/mysqlPassword in `rancher-answers/mysql.yaml`
+       1. Default: username: g2  password: g2
     1. On left-hand navigation, select "G2" database.
     1. Select "Import" tab.
     1. Click "Browse..." button.
         1. Choose `/opt/senzing/g2/data/g2core-schema-mysql-create.sql`.
     1. Click "Go" button.
+
+### Test access to senzing docker images
+
+1. Get Docker image from public `hub.docker.com` Docker registry. Example:
+
+    ```console
+    rancher app install \
+      --answers ${GIT_REPOSITORY_DIR}/rancher-answers/hello-world-on-hub-docker-com.yaml \
+      --namespace ${RANCHER_NAMESPACE_NAME} \
+      senzing-hello-world-on-hub-docker-com \
+      ${RANCHER_PREFIX}-senzing-hello-world-on-hub-docker-com
+    ```
+
+1. Get Docker image from private Docker registry. Example:
+
+    ```console
+    rancher app install \
+      --answers ${GIT_REPOSITORY_DIR}/rancher-answers/hello-world.yaml \
+      --namespace ${RANCHER_NAMESPACE_NAME} \
+      senzing-hello-world \
+      ${RANCHER_PREFIX}-senzing-hello-world
+    ```
+
+1. If both applications work, then Senzing docker images have been properly registered in your private
+   docker registry and Rancher can retrieve the images.
+   1. If applications do not work, revisit
+      "[Senzing docker images](#senzing-docker-images)" and
+      "[Docker registry](#docker-registry)".
+1. Delete the test apps.
+
+    ```console
+    rancher app delete ${RANCHER_PREFIX}-senzing-hello-world-on-hub-docker-com
+    rancher app delete ${RANCHER_PREFIX}-senzing-hello-world
+    ```
 
 ### Install mock-data-generator
 
@@ -347,6 +402,20 @@ See
       ${RANCHER_PREFIX}-senzing-stream-loader
     ```
 
+### Install senzing-api-server
+
+**Warning:** this is still a work-in-progress.  Most likely it will not work.
+
+1. Example:
+
+    ```console
+    rancher app install \
+      --answers ${GIT_REPOSITORY_DIR}/rancher-answers/senzing-api-server.yaml \
+      --namespace ${RANCHER_NAMESPACE_NAME} \
+      senzing-api-server \
+      ${RANCHER_PREFIX}-senzing-api-server
+    ```
+
 ## Cleanup
 
 ### Switch context for delete
@@ -363,8 +432,11 @@ See
 1. Example:
 
     ```console
+    rancher app delete ${RANCHER_PREFIX}-senzing-api-server
     rancher app delete ${RANCHER_PREFIX}-senzing-stream-loader
     rancher app delete ${RANCHER_PREFIX}-senzing-mock-data-generator
+    rancher app delete ${RANCHER_PREFIX}-senzing-hello-world-on-hub-docker-com
+    rancher app delete ${RANCHER_PREFIX}-senzing-hello-world
     rancher app delete ${RANCHER_PREFIX}-phpmyadmin
     rancher app delete ${RANCHER_PREFIX}-mysql
     rancher app delete ${RANCHER_PREFIX}-kafka-test-client
