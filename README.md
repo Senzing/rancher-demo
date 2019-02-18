@@ -253,6 +253,9 @@ See
     ```console
     rancher kubectl create \
       -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-opt-senzing.yaml
+      
+    rancher kubectl create \
+      -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-opt-senzing-senzing-api-server.yaml      
     ```
 
 1. Create "persistent volume claim" for `/opt/senzing` directory. Example:
@@ -260,6 +263,9 @@ See
     ```console
     rancher kubectl create \
       -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-opt-senzing.yaml
+      
+    rancher kubectl create \
+      -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-opt-senzing-senzing-api-server.yaml      
     ```
 
 ### Install Kafka
