@@ -253,9 +253,6 @@ See
     ```console
     rancher kubectl create \
       -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-opt-senzing.yaml
-      
-    rancher kubectl create \
-      -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-opt-senzing-senzing-api-server.yaml      
     ```
 
 1. Create "persistent volume claim" for `/opt/senzing` directory. Example:
@@ -263,9 +260,6 @@ See
     ```console
     rancher kubectl create \
       -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-opt-senzing.yaml
-      
-    rancher kubectl create \
-      -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-opt-senzing-senzing-api-server.yaml      
     ```
 
 ### Install Kafka
@@ -421,6 +415,15 @@ See
       senzing-api-server \
       ${RANCHER_PREFIX}-senzing-api-server
     ```
+
+1. Port forward to local machine.  Run in a separate terminal window. Example:
+
+    ```console
+    export RANCHER_PREFIX=my
+    export RANCHER_NAMESPACE_NAME=${RANCHER_PREFIX}-namespace-1
+
+    rancher kubectl port-forward --namespace ${RANCHER_NAMESPACE_NAME} svc/my-senzing-api-server 8889:80
+    ````
 
 ## Cleanup
 
