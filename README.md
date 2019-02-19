@@ -28,6 +28,7 @@ The following diagram shows the relationship of the Rancher apps, docker contain
     1. [Install mock-data-generator](#install-mock-data-generator)
     1. [Install stream-loader](#install-stream-loader)
     1. [Install senzing-api-server](#install-senzing-api-server)
+    1. [Test Senzing REST API server](#test-senzing-rest-api-server)
 1. [Cleanup](#cleanup)
     1. [Switch context for delete](#switch-context-for-delete)
     1. [Delete everything in project](#delete-everything-in-project)
@@ -171,7 +172,7 @@ See
 1. Modify ${GIT_REPOSITORY_DIR}/rancher-answers/senzing-api-server.yaml
     1. **image.repository**
         1. Template: "${DOCKER_REGISTRY_URL}/senzing/senzing-api-server"
-        1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/senzing-api-server"`        
+        1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/senzing-api-server"`
 1. Modify ${GIT_REPOSITORY_DIR}/rancher-answers/stream-loader.yaml
     1. **image.repository**
         1. Template: "${DOCKER_REGISTRY_URL}/senzing/mock-data-generator"
@@ -335,7 +336,7 @@ See
     ````
 
 1. Open browser to [localhost:8081](http://localhost:8081)
-    1. Login 
+    1. Login
        1. mysqlUser/mysqlPassword in `rancher-answers/mysql.yaml`
        1. Default: username: g2  password: g2
     1. On left-hand navigation, select "G2" database.
@@ -404,8 +405,6 @@ See
 
 ### Install senzing-api-server
 
-**Warning:** this is still a work-in-progress.  Most likely it will not work.
-
 1. Example:
 
     ```console
@@ -424,6 +423,20 @@ See
 
     rancher kubectl port-forward --namespace ${RANCHER_NAMESPACE_NAME} svc/my-senzing-api-server 8889:8080
     ````
+
+### Test Senzing REST API server
+
+*Note:* port 8889 on the localhost has been mapped to port 8080 in the docker container.
+See `rancher kubectl port-forward ...` above.
+
+1. Example:
+
+    ```console
+    export SENZING_API_SERVICE=http://localhost:8889
+
+    curl -X GET ${SENZING_API_SERVICE}/heartbeat
+    curl -X GET ${SENZING_API_SERVICE}/license
+    ```
 
 ## Cleanup
 
