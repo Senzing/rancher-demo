@@ -416,6 +416,15 @@ See
       ${RANCHER_PREFIX}-senzing-api-server
     ```
 
+1. Port forward to local machine.  Run in a separate terminal window. Example:
+
+    ```console
+    export RANCHER_PREFIX=my
+    export RANCHER_NAMESPACE_NAME=${RANCHER_PREFIX}-namespace-1
+
+    rancher kubectl port-forward --namespace ${RANCHER_NAMESPACE_NAME} svc/my-senzing-api-server 8889:8080
+    ````
+
 ## Cleanup
 
 ### Switch context for delete
