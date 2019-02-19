@@ -422,7 +422,7 @@ See
     export RANCHER_PREFIX=my
     export RANCHER_NAMESPACE_NAME=${RANCHER_PREFIX}-namespace-1
 
-    rancher kubectl port-forward --namespace ${RANCHER_NAMESPACE_NAME} svc/my-senzing-api-server 8889:80
+    rancher kubectl port-forward --namespace ${RANCHER_NAMESPACE_NAME} svc/my-senzing-api-server 8889:8080
     ````
 
 ## Cleanup
