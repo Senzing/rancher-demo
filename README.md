@@ -37,40 +37,29 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 
 ## Demonstrate
 
-### Set environment variables for repository
+### Clone repository
 
-1. These variables may be modified, but do not need to be modified.
-   The variables are used throughout the installation procedure.
+1. Using these environment variable values:
 
     ```console
     export GIT_ACCOUNT=senzing
     export GIT_REPOSITORY=rancher-demo
     ```
 
-1. Synthesize environment variables.
+   Follow steps in [clone-repository](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/clone-repository.md).
+
+1 Be sure the following are set:
 
     ```console
     export GIT_ACCOUNT_DIR=~/${GIT_ACCOUNT}.git
     export GIT_REPOSITORY_DIR="${GIT_ACCOUNT_DIR}/${GIT_REPOSITORY}"
-    export GIT_REPOSITORY_URL="https://github.com/${GIT_ACCOUNT}/${GIT_REPOSITORY}.git"
-    ```
-
-### Clone repository
-
-1. Get repository.
-
-    ```console
-    mkdir --parents ${GIT_ACCOUNT_DIR}
-    cd  ${GIT_ACCOUNT_DIR}
-    git clone ${GIT_REPOSITORY_URL}
     ```
 
 ### Prerequisites
 
 #### Rancher
 
-See
-[HOWTO - Install Rancher](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/install-rancher.md).
+1. [Install Rancher](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/install-rancher.md).
 
 1. Simple example for local development:
 
@@ -199,7 +188,7 @@ See
     ```console
     rancher catalog add \
       senzing \
-      https://github.com/senzing/rancher-catalog
+      https://github.com/senzing/charts
     ```
 
 ### Create project
