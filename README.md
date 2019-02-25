@@ -46,9 +46,9 @@ The following diagram shows the relationship of the Rancher apps, docker contain
     export GIT_REPOSITORY=rancher-demo
     ```
 
-   Follow steps in [clone-repository](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/clone-repository.md).
+   Then follow steps in [clone-repository](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/clone-repository.md).
 
-1 Be sure the following are set:
+1. After the repository has been cloned, be sure the following are set:
 
     ```console
     export GIT_ACCOUNT_DIR=~/${GIT_ACCOUNT}.git
