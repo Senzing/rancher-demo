@@ -98,10 +98,10 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 
     ```console
     sudo docker build --tag senzing/db2express-c https://github.com/senzing/docker-db2express-c.git
-    sudo docker build --tag senzing/db2 https://github.com/senzing/docker-db2.git    
+    sudo docker build --tag senzing/db2 https://github.com/senzing/docker-db2.git
     sudo docker build --tag senzing/hello-world https://github.com/senzing/docker-hello-world.git
     sudo docker build --tag senzing/mock-data-generator https://github.com/senzing/mock-data-generator.git
-    
+
     sudo docker build \
        --tag senzing/stream-loader-for-db2-cluster \
        --build-arg BASE_CONTAINER=senzing/python-db2-cluster-base \
@@ -311,48 +311,81 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 
 ### Install DB2
 
-1. Example:
+1. Variables for the secret. Example:
+
+    ```console
+    export DOCKER_SECRET=my-hub-docker-login
+
+    export DOCKER_USERNAME=myusername
+    export DOCKER_PASSWORD=mypassword
+    export DOCKER_EMAIL=me@example.com
+    ```
+
+1. Create secret.
+
+    ```console
+    rancher kubectl create secret docker-registry ${DOCKER_SECRET} \
+      --docker-username=${DOCKER_USERNAME} \
+      --docker-password=${DOCKER_PASSWORD} \
+      --docker-email=${DOCKER_EMAIL} \
+      --namespace=${RANCHER_NAMESPACE_NAME}
+    ```
+
+1. Patch default serviceaccount.
+
+    ```console
+    rancher kubectl patch serviceaccount default \
+      -p ‘{“imagePullSecrets”: [{“name”: “${DOCKER_SECRET}”}]}’ \
+      --namespace=${RANCHER_NAMESPACE_NAME}
+    ```
+
+1. Launch apps.  Example:
+
+    CORE database
 
     ```console
     rancher app install \
-      --answers ${GIT_REPOSITORY_DIR}/rancher-answers/ibm-db2oltp-dev.yaml \
+      --answers ${GIT_REPOSITORY_DIR}/rancher-answers/ibm-db2oltp-dev-core.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
-      senzing-db2-cluster \
-      ${RANCHER_PREFIX}-db2-cluster
+      ibm-db2oltp-dev \
+      ${RANCHER_PREFIX}-ibm-db2oltp-core
     ```
 
-### Test access to senzing docker images
-
-1. Get Docker image from public `hub.docker.com` Docker registry. Example:
+    RES database
 
     ```console
     rancher app install \
-      --answers ${GIT_REPOSITORY_DIR}/rancher-answers/hello-world-on-hub-docker-com.yaml \
+      --answers ${GIT_REPOSITORY_DIR}/rancher-answers/ibm-db2oltp-dev-res.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
-      senzing-hello-world-on-hub-docker-com \
-      ${RANCHER_PREFIX}-senzing-hello-world-on-hub-docker-com
+      ibm-db2oltp-dev \
+      ${RANCHER_PREFIX}-ibm-db2oltp-res
     ```
 
-1. Get Docker image from private Docker registry. Example:
+    LIBFE database
 
     ```console
     rancher app install \
-      --answers ${GIT_REPOSITORY_DIR}/rancher-answers/hello-world.yaml \
+      --answers ${GIT_REPOSITORY_DIR}/rancher-answers/ibm-db2oltp-dev-libfe.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
-      senzing-hello-world \
-      ${RANCHER_PREFIX}-senzing-hello-world
+      ibm-db2oltp-dev \
+      ${RANCHER_PREFIX}-ibm-db2oltp-libfe
     ```
 
-1. If both applications work, then Senzing docker images have been properly registered in your private
-   docker registry and Rancher can retrieve the images.
-   1. If applications do not work, revisit
-      "[Senzing docker images](#senzing-docker-images)" and
-      "[Docker registry](#docker-registry)".
-1. Delete the test apps.
+### Initialize DB2
+
+1. In each DB2 container, run:
 
     ```console
-    rancher app delete ${RANCHER_PREFIX}-senzing-hello-world-on-hub-docker-com
-    rancher app delete ${RANCHER_PREFIX}-senzing-hello-world
+    sudo su db2inst1
+    cd ~
+
+    curl -X GET http://forthdimension.com/senzing/g2core-schema-db2-create.sql -o g2core-schema-db2-create.sql
+
+    db2 connect to G2
+    db2 list tables
+    db2 -tf g2core-schema-db2-create.sql | tee /tmp/g2schema.out
+    db2 list tables
+    db2 connect reset
     ```
 
 ### Install mock-data-generator
@@ -433,14 +466,14 @@ See `rancher kubectl port-forward ...` above.
     rancher app delete ${RANCHER_PREFIX}-senzing-api-server
     rancher app delete ${RANCHER_PREFIX}-senzing-stream-loader
     rancher app delete ${RANCHER_PREFIX}-senzing-mock-data-generator
-    rancher app delete ${RANCHER_PREFIX}-senzing-hello-world-on-hub-docker-com
-    rancher app delete ${RANCHER_PREFIX}-senzing-hello-world
-    rancher app delete ${RANCHER_PREFIX}-phpmyadmin
-    rancher app delete ${RANCHER_PREFIX}-mysql
+
+    rancher app delete ${RANCHER_PREFIX}-ibm-db2oltp-libfe
+    rancher app delete ${RANCHER_PREFIX}-ibm-db2oltp-res
+    rancher app delete ${RANCHER_PREFIX}-ibm-db2oltp-core
     rancher app delete ${RANCHER_PREFIX}-kafka-test-client
     rancher app delete ${RANCHER_PREFIX}-kafka
-    rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-opt-senzing.yaml
-    rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-opt-senzing.yaml
+    rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-db2-data-stor.yaml
+    rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-db2-data-stor.yaml
     rancher namespace delete ${RANCHER_NAMESPACE_NAME}
     rancher projects delete ${RANCHER_PROJECT_NAME}
     ```  
