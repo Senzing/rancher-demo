@@ -1,0 +1,4 @@
+db2inst.instname: "db2inst1"
+db2inst.password: "db2inst1"
+options.databaseName: "G2"
+dataVolume.existingClaimName: "db2-data-stor-claim"

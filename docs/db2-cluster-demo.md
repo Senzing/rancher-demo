@@ -251,7 +251,7 @@ The following diagram shows the relationship of the Rancher apps, docker contain
     cp ${GIT_REPOSITORY_DIR}/kubernetes-examples/*.yaml ${GIT_REPOSITORY_DIR}/kubernetes
     ````
 
-1. Modify ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-opt-senzing.yaml
+1. Modify ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-db2-data-stor.yaml
     1. **namespace**
         1. Template: "${RANCHER_PREFIX}-namespace-1"
         1. Example: `namespace: mytest-namespace-1`
@@ -260,14 +260,14 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 
     ```console
     rancher kubectl create \
-      -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-opt-senzing.yaml
+      -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-db2-data-stor.yaml
     ```
 
 1. Create "persistent volume claim" for `/opt/senzing` directory. Example:
 
     ```console
     rancher kubectl create \
-      -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-opt-senzing.yaml
+      -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-db2-data-stor.yaml
     ```
 
 ### Install Kafka
@@ -309,48 +309,17 @@ The following diagram shows the relationship of the Rancher apps, docker contain
         --from-beginning
     ```
 
-### Install mySQL
+### Install DB2
 
 1. Example:
 
     ```console
     rancher app install \
-      --answers ${GIT_REPOSITORY_DIR}/rancher-answers/mysql.yaml \
+      --answers ${GIT_REPOSITORY_DIR}/rancher-answers/ibm-db2oltp-dev.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
-      library-mysql \
-      ${RANCHER_PREFIX}-mysql
+      senzing-db2-cluster \
+      ${RANCHER_PREFIX}-db2-cluster
     ```
-
-### Install phpMyAdmin
-
-1. Install phpMyAdmin app. Example:
-
-    ```console
-    rancher app install \
-      --answers ${GIT_REPOSITORY_DIR}/rancher-answers/phpmyadmin.yaml \
-      --namespace ${RANCHER_NAMESPACE_NAME} \
-      senzing-phpmyadmin \
-      ${RANCHER_PREFIX}-phpmyadmin
-    ```
-
-1. Port forward to local machine.  Run in a separate terminal window. Example:
-
-    ```console
-    export RANCHER_PREFIX=my
-    export RANCHER_NAMESPACE_NAME=${RANCHER_PREFIX}-namespace-1
-
-    rancher kubectl port-forward --namespace ${RANCHER_NAMESPACE_NAME} svc/my-phpmyadmin 8081:80
-    ````
-
-1. Open browser to [localhost:8081](http://localhost:8081)
-    1. Login
-       1. mysqlUser/mysqlPassword in `rancher-answers/mysql.yaml`
-       1. Default: username: g2  password: g2
-    1. On left-hand navigation, select "G2" database.
-    1. Select "Import" tab.
-    1. Click "Browse..." button.
-        1. Choose `/opt/senzing/g2/data/g2core-schema-mysql-create.sql`.
-    1. Click "Go" button.
 
 ### Test access to senzing docker images
 
