@@ -6,7 +6,7 @@ metadata:
   labels:
     cattle.io/creator: norman
   name: postgresql-claim
-  namespace: my-namespace-1
+  namespace: ${RANCHER_NAMESPACE_NAME}
 spec:
   accessModes:
   - ReadWriteMany

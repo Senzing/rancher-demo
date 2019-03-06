@@ -142,16 +142,14 @@ The following diagram shows the relationship of the Rancher apps, docker contain
     ```console
     export RANCHER_ANSWERS_DIR=${GIT_REPOSITORY_DIR}/rancher-answers
     mkdir -p ${RANCHER_ANSWERS_DIR}
-    
+
     for file in ${GIT_REPOSITORY_DIR}/rancher-answer-examples/*.yaml; \
     do \
-      echo ${file}
-      echo ${RANCHER_ANSWERS_DIR}/$(basename ${file})
       envsubst < "${file}" > "${RANCHER_ANSWERS_DIR}/$(basename ${file})";
     done
     ```
 
-1. Variation #2. Manually edit answer files. Example:
+1. Variation #2. Manually copy example files and modify. Example:
 
     ```console
     export RANCHER_ANSWERS_DIR=${GIT_REPOSITORY_DIR}/rancher-answers
@@ -159,29 +157,34 @@ The following diagram shows the relationship of the Rancher apps, docker contain
     cp ${GIT_REPOSITORY_DIR}/rancher-answer-examples/*.yaml ${RANCHER_ANSWERS_DIR}
     ````
 
-1. Modify ${RANCHER_ANSWERS_DIR}/hello-world.yaml
-    1. **image.repository**
-        1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/hello-world"`  
-1. Modify ${RANCHER_ANSWERS_DIR}/mock-data-generator.yaml
-    1. **image.repository**
-        1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/mock-data-generator"`
-    1. **senzing.kafkaBootstrapServerHost**
-        1. Use hostname of your Kafka server.
-1. Modify ${RANCHER_ANSWERS_DIR}/postgresql.yaml
-    1. For configuration information, see [helm/postgresql](https://github.com/helm/charts/tree/master/stable/postgresql#configuration)
-1. Modify ${RANCHER_ANSWERS_DIR}/phppgadmin.yaml
-1. Modify ${RANCHER_ANSWERS_DIR}/senzing-api-server.yaml
-    1. **image.repository**
-        1. Template: "${DOCKER_REGISTRY_URL}/senzing/senzing-api-server"
-        1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/senzing-api-server"`
-1. Modify ${RANCHER_ANSWERS_DIR}/stream-loader.yaml
-    1. **image.repository**
-        1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/stream-loader"`
-    1. **senzing.databaseUrl**
-        1. Template:  "mysql://g2:g2@${MYSQL_HOSTNAME}:3306/G2"
-        1. Example: `mysql://g2:g2@my.sql-server.com:3306/G2`
-    1. **senzing.kafkaBootstrapServerHost**
-        1. Use hostname of your Kafka server.
+    1. Modify ${RANCHER_ANSWERS_DIR}/hello-world.yaml
+        1. **image.repository**
+            1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/hello-world"`  
+    1. Modify ${RANCHER_ANSWERS_DIR}/mock-data-generator.yaml
+        1. **image.repository**
+            1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/mock-data-generator"`
+    1. Modify ${RANCHER_ANSWERS_DIR}/senzing-api-server.yaml
+        1. **image.repository**
+            1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/senzing-api-server"`
+    1. Modify ${RANCHER_ANSWERS_DIR}/stream-loader.yaml
+        1. **image.repository**
+            1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/stream-loader"`
+
+1. Modify configuration.
+
+    1. Modify ${RANCHER_ANSWERS_DIR}/mock-data-generator.yaml
+        1. **senzing.kafkaBootstrapServerHost**
+            1. Use hostname of your Kafka server.
+
+    1. Modify ${RANCHER_ANSWERS_DIR}/postgresql.yaml
+        1. For configuration information, see [helm/postgresql](https://github.com/helm/charts/tree/master/stable/postgresql#configuration)
+
+    1. Modify ${RANCHER_ANSWERS_DIR}/stream-loader.yaml
+        1. **senzing.databaseUrl**
+            1. Template:  "mysql://g2:g2@${MYSQL_HOSTNAME}:3306/G2"
+            1. Example: `mysql://g2:g2@my.sql-server.com:3306/G2`
+        1. **senzing.kafkaBootstrapServerHost**
+            1. Use hostname of your Kafka server.
 
 ### Set default context
 
@@ -194,7 +197,7 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 
 ### Add catalogs
 
-1. Add helm catalog.  Example: 
+1. Add helm catalog.  Example:
 
     ```console
     rancher catalog add \
@@ -253,30 +256,42 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 1. If you do not already have an `/opt/senzing` directory on your system, visit
    [HOWTO - Create SENZING_DIR](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/create-senzing-dir.md).
 
-1. Copy example kubernetes files. Example:
+1. Variation #1. Quick method using `envsubst`.
 
     ```console
-    mkdir ${GIT_REPOSITORY_DIR}/kubernetes
-    cp ${GIT_REPOSITORY_DIR}/kubernetes-examples/*.yaml ${GIT_REPOSITORY_DIR}/kubernetes
+    export KUBERNETES_DIR=${GIT_REPOSITORY_DIR}/kubernetes
+    mkdir -p ${KUBERNETES_DIR}
+
+    for file in ${GIT_REPOSITORY_DIR}/kubernetes-examples/*.yaml; \
+    do \
+      envsubst < "${file}" > "${KUBERNETES_DIR}/$(basename ${file})";
+    done
+    ```
+
+1. Variation #2. Manually copy example files and modify. Example:
+
+    ```console
+    export KUBERNETES_DIR=${GIT_REPOSITORY_DIR}/kubernetes-2
+    mkdir -p ${KUBERNETES_DIR}
+    cp ${GIT_REPOSITORY_DIR}/kubernetes-examples/*.yaml ${KUBERNETES_DIR}
     ````
 
-1. Modify ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-postgresql.yaml
-    1. **namespace**
-        1. Template: "${RANCHER_PREFIX}-namespace-1"
-        1. Example: `namespace: mytest-namespace-1`
+    1. Modify ${KUBERNETES_DIR}/persistent-volume-claim-postgresql.yaml
+        1. **namespace**
+            1. Example: `namespace: mytest-namespace-1`
 
 1. Create "persistent volume" for `/opt/senzing` directory. Example:
 
     ```console
     rancher kubectl create \
-      -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-opt-senzing.yaml
+      -f ${KUBERNETES_DIR}/persistent-volume-postgresql.yaml
     ```
 
 1. Create "persistent volume claim" for `/opt/senzing` directory. Example:
 
     ```console
     rancher kubectl create \
-      -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-opt-senzing.yaml
+      -f ${KUBERNETES_DIR}/persistent-volume-claim-postgresql.yaml
     ```
 
 ### Install Kafka
@@ -285,7 +300,7 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 
     ```console
     rancher app install \
-      --answers ${GIT_REPOSITORY_DIR}/rancher-answers/kafka.yaml \
+      --answers ${RANCHER_ANSWERS_DIR}/kafka.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
       library-kafka \
       ${RANCHER_PREFIX}-kafka
@@ -297,7 +312,7 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 
     ```console
     rancher app install \
-      --answers ${GIT_REPOSITORY_DIR}/rancher-answers/kafka-test-client.yaml \
+      --answers ${RANCHER_ANSWERS_DIR}/kafka-test-client.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
       senzing-kafka-test-client \
       ${RANCHER_PREFIX}-kafka-test-client
@@ -306,8 +321,8 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 1. Run the test client. Run in a separate terminal window. Example:
 
     ```console
-    export RANCHER_PREFIX=my
-    export RANCHER_NAMESPACE_NAME=${RANCHER_PREFIX}-namespace-1
+    export RANCHER_PREFIX=my-senzing-postgresql
+    export RANCHER_NAMESPACE_NAME=${RANCHER_PREFIX}-namespace
 
     rancher kubectl exec \
       -it \
@@ -324,10 +339,10 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 
     ```console
     rancher app install \
-      --answers ${GIT_REPOSITORY_DIR}/rancher-answers/mysql.yaml \
+      --answers ${RANCHER_ANSWERS_DIR}/postgresql.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
-      library-mysql \
-      ${RANCHER_PREFIX}-mysql
+      postgresql \
+      ${RANCHER_PREFIX}-postgresql
     ```
 
 ### Install phpPgAdmin
@@ -336,7 +351,7 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 
     ```console
     rancher app install \
-      --answers ${GIT_REPOSITORY_DIR}/rancher-answers/phpmyadmin.yaml \
+      --answers ${RANCHER_ANSWERS_DIR}/phpmyadmin.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
       senzing-phpmyadmin \
       ${RANCHER_PREFIX}-phpmyadmin
@@ -367,7 +382,7 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 
     ```console
     rancher app install \
-      --answers ${GIT_REPOSITORY_DIR}/rancher-answers/hello-world-on-hub-docker-com.yaml \
+      --answers ${RANCHER_ANSWERS_DIR}/hello-world-on-hub-docker-com.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
       senzing-hello-world-on-hub-docker-com \
       ${RANCHER_PREFIX}-senzing-hello-world-on-hub-docker-com
@@ -377,7 +392,7 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 
     ```console
     rancher app install \
-      --answers ${GIT_REPOSITORY_DIR}/rancher-answers/hello-world.yaml \
+      --answers ${RANCHER_ANSWERS_DIR}/hello-world.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
       senzing-hello-world \
       ${RANCHER_PREFIX}-senzing-hello-world
@@ -401,7 +416,7 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 
     ```console
     rancher app install \
-      --answers ${GIT_REPOSITORY_DIR}/rancher-answers/mock-data-generator.yaml \
+      --answers ${RANCHER_ANSWERS_DIR}/mock-data-generator.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
       senzing-mock-data-generator \
       ${RANCHER_PREFIX}-senzing-mock-data-generator
@@ -413,7 +428,7 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 
     ```console
     rancher app install \
-      --answers ${GIT_REPOSITORY_DIR}/rancher-answers/stream-loader.yaml \
+      --answers ${RANCHER_ANSWERS_DIR}/stream-loader.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
       senzing-stream-loader \
       ${RANCHER_PREFIX}-senzing-stream-loader
@@ -425,7 +440,7 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 
     ```console
     rancher app install \
-      --answers ${GIT_REPOSITORY_DIR}/rancher-answers/senzing-api-server.yaml \
+      --answers ${RANCHER_ANSWERS_DIR}/senzing-api-server.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
       senzing-api-server \
       ${RANCHER_PREFIX}-senzing-api-server
@@ -479,8 +494,8 @@ See `rancher kubectl port-forward ...` above.
     rancher app delete ${RANCHER_PREFIX}-mysql
     rancher app delete ${RANCHER_PREFIX}-kafka-test-client
     rancher app delete ${RANCHER_PREFIX}-kafka
-    rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-opt-senzing.yaml
-    rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-opt-senzing.yaml
+    rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-postgresql.yaml
+    rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-postgresql.yaml
     rancher namespace delete ${RANCHER_NAMESPACE_NAME}
     rancher projects delete ${RANCHER_PROJECT_NAME}
     ```  
