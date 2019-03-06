@@ -1,10 +1,10 @@
-# rancher-db2-cluster-demo
+# rancher-postgresql-demo
 
 ## Overview
 
 The following diagram shows the relationship of the Rancher apps, docker containers, and code in this Rancher demonstration.
 
-![Image of architecture](docs/img-architecture/architecture.png)
+![Image of architecture](img-architecture/architecture.png)
 
 ### Contents
 
@@ -15,7 +15,7 @@ The following diagram shows the relationship of the Rancher apps, docker contain
     1. [Set environment variables](#set-environment-variables)
     1. [Create custom answer files](#create-custom-answer-files)
     1. [Set default context](#set-default-context)
-    1. [Add catalog](#add-catalog)
+    1. [Add catalogs](#add-catalogs)
     1. [Create project](#create-project)
     1. [Switch context](#switch-context)
     1. [Create namespace](#create-namespace)
@@ -82,30 +82,13 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 
 #### Senzing docker images
 
-1. Because an independent download is needed for the DB2 ODBC client, the
-   [senzing/python-db2-cluster-base](https://github.com/Senzing/docker-python-db2-cluster-base)
-   docker image must be manually built.
-   Follow the build instructions at
-   [github.com/Senzing/docker-python-db2-cluster-base](https://github.com/Senzing/docker-python-db2-cluster-base#build)
-
-1. Verify `senzing/python-db2-cluster-base` is a local image.
-
-    ```console
-    sudo docker images | grep "senzing/python-db2-cluster-base"
-    ```
-
 1. Make Senzing docker images.
 
     ```console
-    sudo docker build --tag senzing/db2express-c https://github.com/senzing/docker-db2express-c.git
-    sudo docker build --tag senzing/db2 https://github.com/senzing/docker-db2.git
     sudo docker build --tag senzing/hello-world https://github.com/senzing/docker-hello-world.git
     sudo docker build --tag senzing/mock-data-generator https://github.com/senzing/mock-data-generator.git
-
-    sudo docker build \
-       --tag senzing/stream-loader-for-db2-cluster \
-       --build-arg BASE_CONTAINER=senzing/python-db2-cluster-base \
-       https://github.com/senzing/stream-loader.git
+    sudo docker build --tag senzing/python-base https://github.com/senzing/docker-python-base.git
+    sudo docker build --tag senzing/stream-loader https://github.com/senzing/stream-loader.git
     ```
 
 1. Build [senzing/senzing-api-server](https://github.com/Senzing/senzing-api-server#using-docker) docker image.
@@ -124,12 +107,10 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 
     ```console
     for GIT_REPOSITORY in \
-      "db2" \
-      "db2express-c" \
       "hello-world" \
       "mock-data-generator" \
       "senzing-api-server" \
-      "stream-loader-for-db2-cluster"; \
+      "stream-loader"; \
     do \
       sudo docker tag senzing/${GIT_REPOSITORY} ${DOCKER_REGISTRY_URL}/senzing/${GIT_REPOSITORY}; \
       sudo docker push ${DOCKER_REGISTRY_URL}/senzing/${GIT_REPOSITORY}; \
@@ -143,46 +124,58 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 
     ```console
     export RANCHER_CLUSTER_NAME=my-rancher-cluster
-    export RANCHER_PREFIX=my
+    export RANCHER_PREFIX=my-senzing-postgresql
     ```
 
-1. Set environment variables listed in "[Set environment variables for repository](#set-environment-variables-for-repository)".
+1. Set environment variables listed in "[Clone repository](#clone-repository)".
 1. Environment variables used in `rancher` CLI commands.
 
     ```console
-    export RANCHER_PROJECT_NAME=${RANCHER_PREFIX}-project-1
-    export RANCHER_NAMESPACE_NAME=${RANCHER_PREFIX}-namespace-1
+    export RANCHER_PROJECT_NAME=${RANCHER_PREFIX}-project
+    export RANCHER_NAMESPACE_NAME=${RANCHER_PREFIX}-namespace
     ```
 
 ### Create custom answer files
 
-1. Copy example answer files. Example:
+1. Variation #1. Quick method using `envsubst`.
 
     ```console
-    mkdir ${GIT_REPOSITORY_DIR}/rancher-answers
-    cp ${GIT_REPOSITORY_DIR}/rancher-answer-examples/*.yaml ${GIT_REPOSITORY_DIR}/rancher-answers
+    export RANCHER_ANSWERS_DIR=${GIT_REPOSITORY_DIR}/rancher-answers
+    mkdir -p ${RANCHER_ANSWERS_DIR}
+    
+    for file in ${GIT_REPOSITORY_DIR}/rancher-answer-examples/*.yaml; \
+    do \
+      echo ${file}
+      echo ${RANCHER_ANSWERS_DIR}/$(basename ${file})
+      envsubst < "${file}" > "${RANCHER_ANSWERS_DIR}/$(basename ${file})";
+    done
+    ```
+
+1. Variation #2. Manually edit answer files. Example:
+
+    ```console
+    export RANCHER_ANSWERS_DIR=${GIT_REPOSITORY_DIR}/rancher-answers
+    mkdir -p ${RANCHER_ANSWERS_DIR}
+    cp ${GIT_REPOSITORY_DIR}/rancher-answer-examples/*.yaml ${RANCHER_ANSWERS_DIR}
     ````
 
-1. Modify ${GIT_REPOSITORY_DIR}/rancher-answers/hello-world.yaml
+1. Modify ${RANCHER_ANSWERS_DIR}/hello-world.yaml
     1. **image.repository**
-        1. Template: "${DOCKER_REGISTRY_URL}/senzing/hello-world"
         1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/hello-world"`  
-1. Modify ${GIT_REPOSITORY_DIR}/rancher-answers/mock-data-generator.yaml
+1. Modify ${RANCHER_ANSWERS_DIR}/mock-data-generator.yaml
     1. **image.repository**
-        1. Template: "${DOCKER_REGISTRY_URL}/senzing/mock-data-generator"
         1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/mock-data-generator"`
     1. **senzing.kafkaBootstrapServerHost**
         1. Use hostname of your Kafka server.
-1. Modify ${GIT_REPOSITORY_DIR}/rancher-answers/phpmyadmin.yaml
-    1. **db.host**
-        1. Use hostname of your mySQL server.
-1. Modify ${GIT_REPOSITORY_DIR}/rancher-answers/senzing-api-server.yaml
+1. Modify ${RANCHER_ANSWERS_DIR}/postgresql.yaml
+    1. For configuration information, see [helm/postgresql](https://github.com/helm/charts/tree/master/stable/postgresql#configuration)
+1. Modify ${RANCHER_ANSWERS_DIR}/phppgadmin.yaml
+1. Modify ${RANCHER_ANSWERS_DIR}/senzing-api-server.yaml
     1. **image.repository**
         1. Template: "${DOCKER_REGISTRY_URL}/senzing/senzing-api-server"
         1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/senzing-api-server"`
-1. Modify ${GIT_REPOSITORY_DIR}/rancher-answers/stream-loader.yaml
+1. Modify ${RANCHER_ANSWERS_DIR}/stream-loader.yaml
     1. **image.repository**
-        1. Template: "${DOCKER_REGISTRY_URL}/senzing/mock-data-generator"
         1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/stream-loader"`
     1. **senzing.databaseUrl**
         1. Template:  "mysql://g2:g2@${MYSQL_HOSTNAME}:3306/G2"
@@ -199,7 +192,15 @@ The following diagram shows the relationship of the Rancher apps, docker contain
       Default
     ```
 
-### Add catalog
+### Add catalogs
+
+1. Add helm catalog.  Example: 
+
+    ```console
+    rancher catalog add \
+      helm \
+      https://github.com/helm/charts
+    ```
 
 1. Add Senzing catalog.  Example:
 
@@ -207,6 +208,14 @@ The following diagram shows the relationship of the Rancher apps, docker contain
     rancher catalog add \
       senzing \
       https://github.com/senzing/charts
+    ```
+
+1. Add jjcollinge catalog. Example:
+
+    ```console
+    rancher catalog add \
+      jjcollinge \
+      https://github.com/jjcollinge/phppgadmin-chart
     ```
 
 ### Create project
@@ -251,7 +260,7 @@ The following diagram shows the relationship of the Rancher apps, docker contain
     cp ${GIT_REPOSITORY_DIR}/kubernetes-examples/*.yaml ${GIT_REPOSITORY_DIR}/kubernetes
     ````
 
-1. Modify ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-db2-data-stor.yaml
+1. Modify ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-postgresql.yaml
     1. **namespace**
         1. Template: "${RANCHER_PREFIX}-namespace-1"
         1. Example: `namespace: mytest-namespace-1`
@@ -260,14 +269,14 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 
     ```console
     rancher kubectl create \
-      -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-db2-data-stor.yaml
+      -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-opt-senzing.yaml
     ```
 
 1. Create "persistent volume claim" for `/opt/senzing` directory. Example:
 
     ```console
     rancher kubectl create \
-      -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-db2-data-stor.yaml
+      -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-opt-senzing.yaml
     ```
 
 ### Install Kafka
@@ -309,127 +318,81 @@ The following diagram shows the relationship of the Rancher apps, docker contain
         --from-beginning
     ```
 
-### Install DB2
+### Install Postgresql
 
-1. Variables for the secret. Example:
-
-    ```console
-    export DOCKER_SECRET=my-hub-docker-login
-
-    export DOCKER_USERNAME=myusername
-    export DOCKER_PASSWORD=mypassword
-    export DOCKER_EMAIL=me@example.com
-    ```
-
-1. Create secret.
-
-    ```console
-    rancher kubectl create secret docker-registry ${DOCKER_SECRET} \
-      --docker-username=${DOCKER_USERNAME} \
-      --docker-password=${DOCKER_PASSWORD} \
-      --docker-email=${DOCKER_EMAIL} \
-      --namespace=${RANCHER_NAMESPACE_NAME}
-    ```
-
-1. Patch default serviceaccount.
-
-    ```console
-    rancher kubectl patch serviceaccount default \
-      -p ‘{“imagePullSecrets”: [{“name”: “${DOCKER_SECRET}”}]}’ \
-      --namespace=${RANCHER_NAMESPACE_NAME}
-    ```
-
-1. Launch apps.  Example:
-
-    CORE database
+1. Example:
 
     ```console
     rancher app install \
-      --answers ${GIT_REPOSITORY_DIR}/rancher-answers/ibm-db2oltp-dev-core.yaml \
+      --answers ${GIT_REPOSITORY_DIR}/rancher-answers/mysql.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
-      ibm-db2oltp-core \
-      ${RANCHER_PREFIX}-ibm-db2oltp-core
+      library-mysql \
+      ${RANCHER_PREFIX}-mysql
     ```
 
-    RES database
+### Install phpPgAdmin
+
+1. Install phpMyAdmin app. Example:
 
     ```console
     rancher app install \
-      --answers ${GIT_REPOSITORY_DIR}/rancher-answers/ibm-db2oltp-dev-res.yaml \
+      --answers ${GIT_REPOSITORY_DIR}/rancher-answers/phpmyadmin.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
-      ibm-db2oltp-res \
-      ${RANCHER_PREFIX}-ibm-db2oltp-res
+      senzing-phpmyadmin \
+      ${RANCHER_PREFIX}-phpmyadmin
     ```
 
-    LIBFE database
+1. Port forward to local machine.  Run in a separate terminal window. Example:
+
+    ```console
+    export RANCHER_PREFIX=my
+    export RANCHER_NAMESPACE_NAME=${RANCHER_PREFIX}-namespace-1
+
+    rancher kubectl port-forward --namespace ${RANCHER_NAMESPACE_NAME} svc/my-phpmyadmin 8081:80
+    ````
+
+1. Open browser to [localhost:8081](http://localhost:8081)
+    1. Login
+       1. mysqlUser/mysqlPassword in `rancher-answers/mysql.yaml`
+       1. Default: username: g2  password: g2
+    1. On left-hand navigation, select "G2" database.
+    1. Select "Import" tab.
+    1. Click "Browse..." button.
+        1. Choose `/opt/senzing/g2/data/g2core-schema-mysql-create.sql`.
+    1. Click "Go" button.
+
+### Test access to senzing docker images
+
+1. Get Docker image from public `hub.docker.com` Docker registry. Example:
 
     ```console
     rancher app install \
-      --answers ${GIT_REPOSITORY_DIR}/rancher-answers/ibm-db2oltp-dev-libfe.yaml \
+      --answers ${GIT_REPOSITORY_DIR}/rancher-answers/hello-world-on-hub-docker-com.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
-      ibm-db2oltp-libfe \
-      ${RANCHER_PREFIX}-ibm-db2oltp-libfe
+      senzing-hello-world-on-hub-docker-com \
+      ${RANCHER_PREFIX}-senzing-hello-world-on-hub-docker-com
     ```
 
-### Initialize DB2
+1. Get Docker image from private Docker registry. Example:
 
-
-1. Create database on "CORE" DB2 server. In docker container, run
-
-    
     ```console
-    sudo su - db2inst1    
-    export DB2_NODE_NAME=G2_CORE
-    cd ~
-    
-    curl -X GET http://forthdimension.com/senzing/g2core-schema-db2-create.sql -o g2core-schema-db2-create.sql
-
-    db2 catalog tcpip node ${DB2_NODE_NAME} remote ${HOSTNAME} server 50000
-    db2 attach to ${DB2_NODE_NAME} user db2inst1 using db2inst1
-    db2 create database G2 using codeset utf-8 territory us
-    db2 connect to G2 user db2inst1 using db2inst1
-    db2 list tables
-    db2 -tf g2core-schema-db2-create.sql | tee /tmp/g2schema.out
-    db2 list tables
-    db2 connect reset
+    rancher app install \
+      --answers ${GIT_REPOSITORY_DIR}/rancher-answers/hello-world.yaml \
+      --namespace ${RANCHER_NAMESPACE_NAME} \
+      senzing-hello-world \
+      ${RANCHER_PREFIX}-senzing-hello-world
     ```
 
-1. Create database on "RES" DB2 server. In docker container, run
+1. If both applications work, then Senzing docker images have been properly registered in your private
+   docker registry and Rancher can retrieve the images.
+   1. If applications do not work, revisit
+      "[Senzing docker images](#senzing-docker-images)" and
+      "[Docker registry](#docker-registry)".
+1. Delete the test apps.
 
     ```console
-    sudo su - db2inst1    
-    export DB2_NODE_NAME=G2_RES
-    cd ~
-    
-    curl -X GET http://forthdimension.com/senzing/g2core-schema-db2-create.sql -o g2core-schema-db2-create.sql
-
-    db2 catalog tcpip node ${DB2_NODE_NAME} remote ${HOSTNAME} server 50000
-    db2 attach to ${DB2_NODE_NAME} user db2inst1 using db2inst1
-    db2 create database G2 using codeset utf-8 territory us
-    db2 connect to G2 user db2inst1 using db2inst1
-    db2 list tables
-    db2 -tf g2core-schema-db2-create.sql | tee /tmp/g2schema.out
-    db2 list tables
-    db2 connect reset
-    ```
-
-1. Create database on "LIBFE" DB2 server. In docker container, run
-
-    ```console
-    sudo su - db2inst1    
-    export DB2_NODE_NAME=G2_LIBFE
-    cd ~
-    
-    curl -X GET http://forthdimension.com/senzing/g2core-schema-db2-create.sql -o g2core-schema-db2-create.sql
-
-    db2 catalog tcpip node ${DB2_NODE_NAME} remote ${HOSTNAME} server 50000
-    db2 attach to ${DB2_NODE_NAME} user db2inst1 using db2inst1
-    db2 create database G2 using codeset utf-8 territory us
-    db2 connect to G2 user db2inst1 using db2inst1
-    db2 list tables
-    db2 -tf g2core-schema-db2-create.sql | tee /tmp/g2schema.out
-    db2 list tables
-    db2 connect reset
+    rancher app delete ${RANCHER_PREFIX}-senzing-hello-world-on-hub-docker-com
+    rancher app delete ${RANCHER_PREFIX}-senzing-hello-world
     ```
 
 ### Install mock-data-generator
@@ -510,14 +473,14 @@ See `rancher kubectl port-forward ...` above.
     rancher app delete ${RANCHER_PREFIX}-senzing-api-server
     rancher app delete ${RANCHER_PREFIX}-senzing-stream-loader
     rancher app delete ${RANCHER_PREFIX}-senzing-mock-data-generator
-
-    rancher app delete ${RANCHER_PREFIX}-ibm-db2oltp-libfe
-    rancher app delete ${RANCHER_PREFIX}-ibm-db2oltp-res
-    rancher app delete ${RANCHER_PREFIX}-ibm-db2oltp-core
+    rancher app delete ${RANCHER_PREFIX}-senzing-hello-world-on-hub-docker-com
+    rancher app delete ${RANCHER_PREFIX}-senzing-hello-world
+    rancher app delete ${RANCHER_PREFIX}-phpmyadmin
+    rancher app delete ${RANCHER_PREFIX}-mysql
     rancher app delete ${RANCHER_PREFIX}-kafka-test-client
     rancher app delete ${RANCHER_PREFIX}-kafka
-    rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-db2-data-stor.yaml
-    rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-db2-data-stor.yaml
+    rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-opt-senzing.yaml
+    rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-opt-senzing.yaml
     rancher namespace delete ${RANCHER_NAMESPACE_NAME}
     rancher projects delete ${RANCHER_PROJECT_NAME}
     ```  

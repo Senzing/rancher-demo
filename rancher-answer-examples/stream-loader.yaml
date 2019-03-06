@@ -1,4 +1,4 @@
-'image.repository': "my.docker-registry.com:5000/senzing/stream-loader"
+'image.repository': "${DOCKER_REGISTRY_URL}/senzing/stream-loader"
 'image.tag': "latest"
 'senzing.subcommand': "kafka"
 'senzing.databaseUrl': "mysql://g2:g2@my-mysql-mysql:3306/G2"
