@@ -347,23 +347,23 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 
 ### Install phpPgAdmin
 
-1. Install phpMyAdmin app. Example:
+1. Install phpPgAdmin app. Example:
 
     ```console
     rancher app install \
-      --answers ${RANCHER_ANSWERS_DIR}/phpmyadmin.yaml \
+      --answers ${RANCHER_ANSWERS_DIR}/phppgadmin.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
-      senzing-phpmyadmin \
-      ${RANCHER_PREFIX}-phpmyadmin
+      phppgadmin-chart \
+      ${RANCHER_PREFIX}-phppgadmin
     ```
 
 1. Port forward to local machine.  Run in a separate terminal window. Example:
 
     ```console
-    export RANCHER_PREFIX=my
-    export RANCHER_NAMESPACE_NAME=${RANCHER_PREFIX}-namespace-1
+    export RANCHER_PREFIX=my-senzing-postgresql
+    export RANCHER_NAMESPACE_NAME=${RANCHER_PREFIX}-namespace
 
-    rancher kubectl port-forward --namespace ${RANCHER_NAMESPACE_NAME} svc/my-phpmyadmin 8081:80
+    rancher kubectl port-forward --namespace ${RANCHER_NAMESPACE_NAME} svc/${RANCHER_PREFIX}-phppgadmin-phppgadmin-chart 8081:8080
     ````
 
 1. Open browser to [localhost:8081](http://localhost:8081)
@@ -490,8 +490,8 @@ See `rancher kubectl port-forward ...` above.
     rancher app delete ${RANCHER_PREFIX}-senzing-mock-data-generator
     rancher app delete ${RANCHER_PREFIX}-senzing-hello-world-on-hub-docker-com
     rancher app delete ${RANCHER_PREFIX}-senzing-hello-world
-    rancher app delete ${RANCHER_PREFIX}-phpmyadmin
-    rancher app delete ${RANCHER_PREFIX}-mysql
+    rancher app delete ${RANCHER_PREFIX}-phppgadmin
+    rancher app delete ${RANCHER_PREFIX}-postgresql
     rancher app delete ${RANCHER_PREFIX}-kafka-test-client
     rancher app delete ${RANCHER_PREFIX}-kafka
     rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-postgresql.yaml

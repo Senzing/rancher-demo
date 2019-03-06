@@ -1,2 +1,3 @@
-db.host: "my-mysql-mysql"
+phppgadmin.serverHost: "my-senzing-postgresql-postgresql"
+service.type: ClusterIP
 service.port: 80
