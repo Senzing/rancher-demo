@@ -143,7 +143,7 @@ The following diagram shows the relationship of the Rancher apps, docker contain
     export RANCHER_ANSWERS_DIR=${GIT_REPOSITORY_DIR}/rancher-answers
     mkdir -p ${RANCHER_ANSWERS_DIR}
 
-    for file in ${GIT_REPOSITORY_DIR}/rancher-answer-examples/*.yaml; \
+    for file in ${GIT_REPOSITORY_DIR}/rancher-answer-templates/*.yaml; \
     do \
       envsubst < "${file}" > "${RANCHER_ANSWERS_DIR}/$(basename ${file})";
     done
@@ -154,7 +154,7 @@ The following diagram shows the relationship of the Rancher apps, docker contain
     ```console
     export RANCHER_ANSWERS_DIR=${GIT_REPOSITORY_DIR}/rancher-answers
     mkdir -p ${RANCHER_ANSWERS_DIR}
-    cp ${GIT_REPOSITORY_DIR}/rancher-answer-examples/*.yaml ${RANCHER_ANSWERS_DIR}
+    cp ${GIT_REPOSITORY_DIR}/rancher-answer-templates/*.yaml ${RANCHER_ANSWERS_DIR}
     ````
 
     1. Modify ${RANCHER_ANSWERS_DIR}/hello-world.yaml
@@ -197,13 +197,9 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 
 ### Add catalogs
 
-1. Add helm catalog.  Example:
-
-    ```console
-    rancher catalog add \
-      helm \
-      https://github.com/helm/charts
-    ```
+1. Add "Helm Stable"
+    1. In Rancher > Global > Catalogs:
+        1. Example URL is [https://localhost/g/catalog](https://localhost/g/catalog)        1. "Enable" Helm Stable
 
 1. Add Senzing catalog.  Example:
 
@@ -262,7 +258,7 @@ The following diagram shows the relationship of the Rancher apps, docker contain
     export KUBERNETES_DIR=${GIT_REPOSITORY_DIR}/kubernetes
     mkdir -p ${KUBERNETES_DIR}
 
-    for file in ${GIT_REPOSITORY_DIR}/kubernetes-examples/*.yaml; \
+    for file in ${GIT_REPOSITORY_DIR}/kubernetes-templates/*.yaml; \
     do \
       envsubst < "${file}" > "${KUBERNETES_DIR}/$(basename ${file})";
     done
@@ -273,7 +269,7 @@ The following diagram shows the relationship of the Rancher apps, docker contain
     ```console
     export KUBERNETES_DIR=${GIT_REPOSITORY_DIR}/kubernetes-2
     mkdir -p ${KUBERNETES_DIR}
-    cp ${GIT_REPOSITORY_DIR}/kubernetes-examples/*.yaml ${KUBERNETES_DIR}
+    cp ${GIT_REPOSITORY_DIR}/kubernetes-templates/*.yaml ${KUBERNETES_DIR}
     ````
 
     1. Modify ${KUBERNETES_DIR}/persistent-volume-claim-postgresql.yaml
@@ -335,6 +331,16 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 
 ### Install Postgresql
 
+1. Create Configmap for `pg_hba.conf`. Example
+
+    ```console
+    rancher kubectl create configmap ${RANCHER_PREFIX}-pg-hba \
+      --namespace ${RANCHER_NAMESPACE_NAME} \
+      --from-file=${KUBERNETES_DIR}/pg_hba.conf
+    ```
+
+    Note: `pg_hba.conf` will be stored in the PersistentVolumeClaim.
+
 1. Example:
 
     ```console
@@ -363,7 +369,9 @@ The following diagram shows the relationship of the Rancher apps, docker contain
     export RANCHER_PREFIX=my-senzing-postgresql
     export RANCHER_NAMESPACE_NAME=${RANCHER_PREFIX}-namespace
 
-    rancher kubectl port-forward --namespace ${RANCHER_NAMESPACE_NAME} svc/${RANCHER_PREFIX}-phppgadmin-phppgadmin-chart 8081:8080
+    rancher kubectl port-forward \
+      --namespace ${RANCHER_NAMESPACE_NAME} \
+      svc/${RANCHER_PREFIX}-phppgadmin-phppgadmin-chart 8081:8080
     ````
 
 1. Open browser to [localhost:8081](http://localhost:8081)
@@ -508,10 +516,11 @@ See `rancher kubectl port-forward ...` above.
     rancher context switch Default
     ```
 
-### Delete catalog
+### Delete catalogs
 
 1. Delete Senzing catalog. Example:
 
     ```console
     rancher catalog delete senzing
+    rancher catalog delete jjcollinge
     ```
