@@ -143,7 +143,7 @@ The following diagram shows the relationship of the Rancher apps, docker contain
     export RANCHER_ANSWERS_DIR=${GIT_REPOSITORY_DIR}/rancher-answers
     mkdir -p ${RANCHER_ANSWERS_DIR}
 
-    for file in ${GIT_REPOSITORY_DIR}/rancher-answer-templates/*.yaml; \
+    for file in ${GIT_REPOSITORY_DIR}/rancher-answers-templates/*.yaml; \
     do \
       envsubst < "${file}" > "${RANCHER_ANSWERS_DIR}/$(basename ${file})";
     done
@@ -154,7 +154,7 @@ The following diagram shows the relationship of the Rancher apps, docker contain
     ```console
     export RANCHER_ANSWERS_DIR=${GIT_REPOSITORY_DIR}/rancher-answers
     mkdir -p ${RANCHER_ANSWERS_DIR}
-    cp ${GIT_REPOSITORY_DIR}/rancher-answer-templates/*.yaml ${RANCHER_ANSWERS_DIR}
+    cp ${GIT_REPOSITORY_DIR}/rancher-answers-templates/*.yaml ${RANCHER_ANSWERS_DIR}
     ````
 
     1. Modify ${RANCHER_ANSWERS_DIR}/hello-world.yaml
@@ -186,6 +186,32 @@ The following diagram shows the relationship of the Rancher apps, docker contain
         1. **senzing.kafkaBootstrapServerHost**
             1. Use hostname of your Kafka server.
 
+### Create custom kubernetes configuration files
+
+1. Variation #1. Quick method using `envsubst`.
+
+    ```console
+    export KUBERNETES_DIR=${GIT_REPOSITORY_DIR}/kubernetes
+    mkdir -p ${KUBERNETES_DIR}
+
+    for file in ${GIT_REPOSITORY_DIR}/kubernetes-templates/*; \
+    do \
+      envsubst < "${file}" > "${KUBERNETES_DIR}/$(basename ${file})";
+    done
+    ```
+
+1. Variation #2. Manually copy example files and modify. Example:
+
+    ```console
+    export KUBERNETES_DIR=${GIT_REPOSITORY_DIR}/kubernetes-2
+    mkdir -p ${KUBERNETES_DIR}
+    cp ${GIT_REPOSITORY_DIR}/kubernetes-templates/*.yaml ${KUBERNETES_DIR}
+    ````
+
+    1. Modify ${KUBERNETES_DIR}/persistent-volume-claim-postgresql.yaml
+        1. **namespace**
+            1. Example: `namespace: mytest-namespace-1`
+
 ### Set default context
 
 1. Switch context.  Example:
@@ -199,7 +225,8 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 
 1. Add "Helm Stable"
     1. In Rancher > Global > Catalogs:
-        1. Example URL is [https://localhost/g/catalog](https://localhost/g/catalog)        1. "Enable" Helm Stable
+        1. Example URL is [https://localhost/g/catalog](https://localhost/g/catalog)
+        1. "Enable" Helm Stable
 
 1. Add Senzing catalog.  Example:
 
@@ -252,42 +279,24 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 1. If you do not already have an `/opt/senzing` directory on your system, visit
    [HOWTO - Create SENZING_DIR](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/create-senzing-dir.md).
 
-1. Variation #1. Quick method using `envsubst`.
-
-    ```console
-    export KUBERNETES_DIR=${GIT_REPOSITORY_DIR}/kubernetes
-    mkdir -p ${KUBERNETES_DIR}
-
-    for file in ${GIT_REPOSITORY_DIR}/kubernetes-templates/*.yaml; \
-    do \
-      envsubst < "${file}" > "${KUBERNETES_DIR}/$(basename ${file})";
-    done
-    ```
-
-1. Variation #2. Manually copy example files and modify. Example:
-
-    ```console
-    export KUBERNETES_DIR=${GIT_REPOSITORY_DIR}/kubernetes-2
-    mkdir -p ${KUBERNETES_DIR}
-    cp ${GIT_REPOSITORY_DIR}/kubernetes-templates/*.yaml ${KUBERNETES_DIR}
-    ````
-
-    1. Modify ${KUBERNETES_DIR}/persistent-volume-claim-postgresql.yaml
-        1. **namespace**
-            1. Example: `namespace: mytest-namespace-1`
-
-1. Create "persistent volume" for `/opt/senzing` directory. Example:
+1. Create persistent volumes. Example:
 
     ```console
     rancher kubectl create \
       -f ${KUBERNETES_DIR}/persistent-volume-postgresql.yaml
+
+    rancher kubectl create \
+      -f ${KUBERNETES_DIR}/persistent-volume-opt-senzing.yaml      
     ```
 
-1. Create "persistent volume claim" for `/opt/senzing` directory. Example:
+1. Create persistent volume claims. Example:
 
     ```console
     rancher kubectl create \
       -f ${KUBERNETES_DIR}/persistent-volume-claim-postgresql.yaml
+      
+    rancher kubectl create \
+      -f ${KUBERNETES_DIR}/persistent-volume-claim-opt-senzing.yaml      
     ```
 
 ### Install Kafka
@@ -376,47 +385,13 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 
 1. Open browser to [localhost:8081](http://localhost:8081)
     1. Login
-       1. mysqlUser/mysqlPassword in `rancher-answers/mysql.yaml`
-       1. Default: username: g2  password: g2
+       1. XXXX/postgresqlPassword in `rancher-answers/postgresql.yaml`
+       1. Default: username: postgres  password: postgres
     1. On left-hand navigation, select "G2" database.
-    1. Select "Import" tab.
+    1. Select "SQL" tab.
     1. Click "Browse..." button.
-        1. Choose `/opt/senzing/g2/data/g2core-schema-mysql-create.sql`.
-    1. Click "Go" button.
-
-### Test access to senzing docker images
-
-1. Get Docker image from public `hub.docker.com` Docker registry. Example:
-
-    ```console
-    rancher app install \
-      --answers ${RANCHER_ANSWERS_DIR}/hello-world-on-hub-docker-com.yaml \
-      --namespace ${RANCHER_NAMESPACE_NAME} \
-      senzing-hello-world-on-hub-docker-com \
-      ${RANCHER_PREFIX}-senzing-hello-world-on-hub-docker-com
-    ```
-
-1. Get Docker image from private Docker registry. Example:
-
-    ```console
-    rancher app install \
-      --answers ${RANCHER_ANSWERS_DIR}/hello-world.yaml \
-      --namespace ${RANCHER_NAMESPACE_NAME} \
-      senzing-hello-world \
-      ${RANCHER_PREFIX}-senzing-hello-world
-    ```
-
-1. If both applications work, then Senzing docker images have been properly registered in your private
-   docker registry and Rancher can retrieve the images.
-   1. If applications do not work, revisit
-      "[Senzing docker images](#senzing-docker-images)" and
-      "[Docker registry](#docker-registry)".
-1. Delete the test apps.
-
-    ```console
-    rancher app delete ${RANCHER_PREFIX}-senzing-hello-world-on-hub-docker-com
-    rancher app delete ${RANCHER_PREFIX}-senzing-hello-world
-    ```
+        1. Choose `/opt/senzing/g2/data/g2core-schema-postgresql-create.sql`.
+    1. Click "Execute" button.
 
 ### Install mock-data-generator
 
@@ -457,10 +432,10 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 1. Port forward to local machine.  Run in a separate terminal window. Example:
 
     ```console
-    export RANCHER_PREFIX=my
-    export RANCHER_NAMESPACE_NAME=${RANCHER_PREFIX}-namespace-1
+    export RANCHER_PREFIX=my-senzing-postgresql
+    export RANCHER_NAMESPACE_NAME=${RANCHER_PREFIX}-namespace
 
-    rancher kubectl port-forward --namespace ${RANCHER_NAMESPACE_NAME} svc/my-senzing-api-server 8889:8080
+    rancher kubectl port-forward --namespace ${RANCHER_NAMESPACE_NAME} svc/${RANCHER_PREFIX}-senzing-api-server 8889:8080
     ````
 
 ### Test Senzing REST API server

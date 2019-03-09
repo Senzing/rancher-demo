@@ -1,2 +1,0 @@
-db.host: "my-mysql-mysql"
-service.port: 80

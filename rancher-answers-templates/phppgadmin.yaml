@@ -1,5 +1,5 @@
 image.repository: senzing/phppgadmin
 image.tag: latest
-phppgadmin.serverHost: "my-senzing-postgresql-postgresql-postgresql"
+phppgadmin.serverHost: "${RANCHER_PREFIX}-postgresql-postgresql"
 service.type: ClusterIP
 ingress.enabled: true

@@ -1,0 +1,2 @@
+db.host: "${RANCHER_PREFIX}-mysql-mysql"
+service.port: 80

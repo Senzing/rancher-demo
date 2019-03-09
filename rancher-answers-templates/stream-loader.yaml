@@ -1,10 +1,10 @@
 'image.repository': "${DOCKER_REGISTRY_URL}/senzing/stream-loader"
 'image.tag': "latest"
 'senzing.subcommand': "kafka"
-'senzing.databaseUrl': "mysql://g2:g2@my-mysql-mysql:3306/G2"
+'senzing.databaseUrl': "mysql://g2:g2@${RANCHER_PREFIX}-mysql-mysql:3306/G2"
 'senzing.dataSource': "PEOPLE"
 'senzing.entityType': "PEOPLE"
-'senzing.kafkaBootstrapServerHost': "my-kafka-kafka"
+'senzing.kafkaBootstrapServerHost': "${RANCHER_PREFIX}-kafka-kafka"
 'senzing.kafkaBootstrapServerPort': 9092
 'senzing.kafkaTopic': "senzing-kafka-topic"
 'senzing.logLevel': "info"
