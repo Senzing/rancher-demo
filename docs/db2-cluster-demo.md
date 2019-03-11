@@ -104,7 +104,7 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 
     sudo docker build \
        --tag senzing/stream-loader-for-db2-cluster \
-       --build-arg BASE_CONTAINER=senzing/python-db2-cluster-base \
+       --build-arg BASE_IMAGE=senzing/python-db2-cluster-base \
        https://github.com/senzing/stream-loader.git
     ```
 
