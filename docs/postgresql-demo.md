@@ -85,10 +85,24 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 1. Make Senzing docker images.
 
     ```console
-    sudo docker build --tag senzing/hello-world https://github.com/senzing/docker-hello-world.git
-    sudo docker build --tag senzing/mock-data-generator https://github.com/senzing/mock-data-generator.git
-    sudo docker build --tag senzing/python-base https://github.com/senzing/docker-python-base.git
-    sudo docker build --tag senzing/stream-loader https://github.com/senzing/stream-loader.git
+    export BASE_IMAGE=senzing/python-postgresql-base
+
+    sudo docker build \
+      --tag ${BASE_IMAGE} \
+      https://github.com/senzing/docker-python-postgresql-base.git
+
+    sudo docker build \
+      --tag senzing/stream-loader \
+      --build-arg BASE_IMAGE=${BASE_IMAGE} \
+      https://github.com/senzing/stream-loader.git
+
+    sudo docker build \
+      --tag senzing/hello-world \
+      https://github.com/senzing/docker-hello-world.git
+
+    sudo docker build \
+      --tag senzing/mock-data-generator \
+      https://github.com/senzing/mock-data-generator.git
     ```
 
 1. Build [senzing/senzing-api-server](https://github.com/Senzing/senzing-api-server#using-docker) docker image.
