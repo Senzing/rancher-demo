@@ -5,8 +5,8 @@ metadata:
   - kubernetes.io/pvc-protection
   labels:
     cattle.io/creator: norman
-  name: opt-senzing-claim
-  namespace: my-namespace-1
+  name: db2-data-stor-claim
+  namespace: ${RANCHER_NAMESPACE_NAME}
 spec:
   accessModes:
   - ReadWriteMany
@@ -14,4 +14,4 @@ spec:
     requests:
       storage: 10Gi
   storageClassName: "manual"
-  volumeName: opt-senzing-volume
+  volumeName: db2-data-stor-volume
