@@ -204,6 +204,9 @@ This repository assumes a working knowledge of:
     1. Modify ${RANCHER_ANSWERS_DIR}/phppgadmin.yaml
         1. **phppgadmin.serverHost**
             1. Example: `'phppgadmin.serverHost': "my-senzing-postgresql-postgresql-postgresql"`
+    1. Modify ${RANCHER_ANSWERS_DIR}/postgres-client.yaml
+        1. **postgresql.host**
+            1. Example: `'postgresql.host': "my-senzing-postgresql-postgresql-postgresql"`
     1. Modify ${RANCHER_ANSWERS_DIR}/senzing-api-server.yaml
         1. **image.repository**
             1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/senzing-api-server"`
@@ -395,6 +398,18 @@ This repository assumes a working knowledge of:
       ${RANCHER_PREFIX}-postgresql
     ```
 
+### Initialize database
+
+1. Example:
+
+    ```console
+    rancher app install \
+      --answers ${RANCHER_ANSWERS_DIR}/postgresql-client.yaml \
+      --namespace ${RANCHER_NAMESPACE_NAME} \
+      postgresql-client \
+      ${RANCHER_PREFIX}-postgresql-client
+    ```
+
 ### Install phpPgAdmin
 
 1. Install phpPgAdmin app. Example:
@@ -426,11 +441,7 @@ This repository assumes a working knowledge of:
     1. Login
        1. See `rancher-answers/postgresql.yaml` for postgresqlUsername and postgresqlPassword
        1. Default: username: `postgres`  password: `postgres`
-    1. On left-hand navigation, select "G2" database.
-    1. Select "SQL" tab.
-    1. Click "Browse..." button.
-        1. Choose `/opt/senzing/g2/data/g2core-schema-postgresql-create.sql`.
-    1. Click "Execute" button.
+    1. On left-hand navigation, select "G2" database to explore.
 
 ### Install mock-data-generator
 
