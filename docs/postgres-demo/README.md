@@ -4,7 +4,7 @@
 
 The following diagram shows the relationship of the Rancher apps, docker containers, and code in this Rancher demonstration.
 
-![Image of architecture](img-architecture/architecture.png)
+![Image of architecture](architecture.png)
 
 ### Contents
 
@@ -384,6 +384,10 @@ The following diagram shows the relationship of the Rancher apps, docker contain
       phppgadmin-chart \
       ${RANCHER_PREFIX}-phppgadmin
     ```
+
+1. Optional:  Background information on
+    [senzing/phppgadmin](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/build-docker-senzing-phppgadmin.md)
+    docker image.
 
 1. Port forward to local machine.  Run in a separate terminal window. Example:
 

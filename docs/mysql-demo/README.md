@@ -4,7 +4,7 @@
 
 The following diagram shows the relationship of the Rancher apps, docker containers, and code in this Rancher demonstration.
 
-![Image of architecture](docs/img-architecture/architecture.png)
+![Image of architecture](architecture.png)
 
 ### Contents
 
