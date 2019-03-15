@@ -425,7 +425,7 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 
     ```console
     rancher app install \
-      --answers ${RANCHER_ANSWERS_DIR}/stream-loader.yaml \
+      --answers ${RANCHER_ANSWERS_DIR}/stream-loader-postgresql.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
       senzing-stream-loader \
       ${RANCHER_PREFIX}-senzing-stream-loader
@@ -491,7 +491,9 @@ See `rancher kubectl port-forward ...` above.
     rancher app delete ${RANCHER_PREFIX}-postgresql
     rancher app delete ${RANCHER_PREFIX}-kafka-test-client
     rancher app delete ${RANCHER_PREFIX}-kafka
+    rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-opt-senzing.yaml
     rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-postgresql.yaml
+    rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-opt-senzing.yaml    
     rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-postgresql.yaml
     rancher namespace delete ${RANCHER_NAMESPACE_NAME}
     rancher projects delete ${RANCHER_PROJECT_NAME}
