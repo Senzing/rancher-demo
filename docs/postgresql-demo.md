@@ -9,11 +9,11 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 ### Contents
 
 1. [Demonstrate](#demonstrate)
-    1. [Set environment variables for repository](#set-environment-variables-for-repository)
     1. [Clone repository](#clone-repository)
     1. [Prerequisites](#prerequisites)
     1. [Set environment variables](#set-environment-variables)
     1. [Create custom answer files](#create-custom-answer-files)
+    1. [Create custom kubernetes configuration files](#create-custom-kubernetes-configuration-files)
     1. [Set default context](#set-default-context)
     1. [Add catalogs](#add-catalogs)
     1. [Create project](#create-project)
@@ -22,9 +22,8 @@ The following diagram shows the relationship of the Rancher apps, docker contain
     1. [Create persistent volume](#create-persistent-volume)
     1. [Install Kafka](#install-kafka)
     1. [Install Kafka test client](#install-kafka-test-client)
-    1. [Install mySQL](#install-mysql)
-    1. [Install phpMyAdmin](#install-phpmyadmin)
-    1. [Test access to senzing docker images](#test-access-to-senzing-docker-images)
+    1. [Install Postgresql](#install-postgresql)
+    1. [Install phpPgAdmin](#install-phppgadmin)
     1. [Install mock-data-generator](#install-mock-data-generator)
     1. [Install stream-loader](#install-stream-loader)
     1. [Install senzing-api-server](#install-senzing-api-server)
@@ -33,7 +32,7 @@ The following diagram shows the relationship of the Rancher apps, docker contain
     1. [Switch context for delete](#switch-context-for-delete)
     1. [Delete everything in project](#delete-everything-in-project)
     1. [Default context after cleanup](#default-context-after-cleanup)
-    1. [Delete catalog](#delete-catalog)
+    1. [Delete catalogs](#delete-catalogs)
 
 ## Demonstrate
 
@@ -300,7 +299,7 @@ The following diagram shows the relationship of the Rancher apps, docker contain
       -f ${KUBERNETES_DIR}/persistent-volume-postgresql.yaml
 
     rancher kubectl create \
-      -f ${KUBERNETES_DIR}/persistent-volume-opt-senzing.yaml      
+      -f ${KUBERNETES_DIR}/persistent-volume-opt-senzing.yaml
     ```
 
 1. Create persistent volume claims. Example:
@@ -308,9 +307,9 @@ The following diagram shows the relationship of the Rancher apps, docker contain
     ```console
     rancher kubectl create \
       -f ${KUBERNETES_DIR}/persistent-volume-claim-postgresql.yaml
-      
+
     rancher kubectl create \
-      -f ${KUBERNETES_DIR}/persistent-volume-claim-opt-senzing.yaml      
+      -f ${KUBERNETES_DIR}/persistent-volume-claim-opt-senzing.yaml
     ```
 
 ### Install Kafka
@@ -464,6 +463,7 @@ See `rancher kubectl port-forward ...` above.
 
     curl -X GET ${SENZING_API_SERVICE}/heartbeat
     curl -X GET ${SENZING_API_SERVICE}/license
+    curl -X GET ${SENZING_API_SERVICE}/entities/1
     ```
 
 ## Cleanup
@@ -493,7 +493,7 @@ See `rancher kubectl port-forward ...` above.
     rancher app delete ${RANCHER_PREFIX}-kafka
     rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-opt-senzing.yaml
     rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-postgresql.yaml
-    rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-opt-senzing.yaml    
+    rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-opt-senzing.yaml
     rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-postgresql.yaml
     rancher namespace delete ${RANCHER_NAMESPACE_NAME}
     rancher projects delete ${RANCHER_PROJECT_NAME}
