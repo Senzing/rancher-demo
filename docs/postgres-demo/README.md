@@ -195,32 +195,28 @@ This repository assumes a working knowledge of:
 
     1. Modify ${RANCHER_ANSWERS_DIR}/hello-world.yaml
         1. **image.repository**
-            1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/hello-world"`  
+            1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/hello-world"`
     1. Modify ${RANCHER_ANSWERS_DIR}/mock-data-generator.yaml
         1. **image.repository**
             1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/mock-data-generator"`
+        1. **senzing.kafkaBootstrapServerHost**
+            1. Example: `'senzing.kafkaBootstrapServerHost': "my-senzing-postgresql-kafka-kafka"`
+    1. Modify ${RANCHER_ANSWERS_DIR}/phppgadmin.yaml
+        1. **phppgadmin.serverHost**
+            1. Example: `'phppgadmin.serverHost': "my-senzing-postgresql-postgresql-postgresql"`
     1. Modify ${RANCHER_ANSWERS_DIR}/senzing-api-server.yaml
         1. **image.repository**
             1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/senzing-api-server"`
-    1. Modify ${RANCHER_ANSWERS_DIR}/stream-loader.yaml
+    1. Modify ${RANCHER_ANSWERS_DIR}/stream-loaderpostgresql.yaml
         1. **image.repository**
             1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/stream-loader"`
+        1. **senzing.kafkaBootstrapServerHost**
+            1. Example: `'senzing.kafkaBootstrapServerHost': "my-senzing-postgresql-kafka-kafka"`
 
 1. Modify configuration.
 
-    1. Modify ${RANCHER_ANSWERS_DIR}/mock-data-generator.yaml
-        1. **senzing.kafkaBootstrapServerHost**
-            1. Use hostname of your Kafka server.
-
     1. Modify ${RANCHER_ANSWERS_DIR}/postgresql.yaml
         1. For configuration information, see [helm/postgresql](https://github.com/helm/charts/tree/master/stable/postgresql#configuration)
-
-    1. Modify ${RANCHER_ANSWERS_DIR}/stream-loader.yaml
-        1. **senzing.databaseUrl**
-            1. Template:  "mysql://g2:g2@${MYSQL_HOSTNAME}:3306/G2"
-            1. Example: `mysql://g2:g2@my.sql-server.com:3306/G2`
-        1. **senzing.kafkaBootstrapServerHost**
-            1. Use hostname of your Kafka server.
 
 ### Create custom kubernetes configuration files
 
@@ -244,9 +240,12 @@ This repository assumes a working knowledge of:
     cp ${GIT_REPOSITORY_DIR}/kubernetes-templates/*.yaml ${KUBERNETES_DIR}
     ````
 
+    1. Modify ${KUBERNETES_DIR}/persistent-volume-claim-opt-senzing.yaml
+        1. **namespace**
+            1. Example: `namespace: my-senzing-postgresql-namespace`
     1. Modify ${KUBERNETES_DIR}/persistent-volume-claim-postgresql.yaml
         1. **namespace**
-            1. Example: `namespace: mytest-namespace-1`
+            1. Example: `namespace: my-senzing-postgresql-namespace`
 
 ### Set default context
 
