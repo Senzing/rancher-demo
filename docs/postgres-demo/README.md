@@ -8,6 +8,10 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 
 ### Contents
 
+1. [Expectations](#expectations)
+    1. [Space](#space)
+    1. [Time](#time)
+    1. [Background knowledge](#background-knowledge)
 1. [Demonstrate](#demonstrate)
     1. [Clone repository](#clone-repository)
     1. [Prerequisites](#prerequisites)
@@ -33,6 +37,25 @@ The following diagram shows the relationship of the Rancher apps, docker contain
     1. [Delete everything in project](#delete-everything-in-project)
     1. [Default context after cleanup](#default-context-after-cleanup)
     1. [Delete catalogs](#delete-catalogs)
+
+## Expectations
+
+### Space
+
+This repository and demonstration require 20 GB free disk space.
+
+### Time
+
+Budget 4 hours to get the demonstration up-and-running, depending on CPU and network speeds.
+
+### Background knowledge
+
+This repository assumes a working knowledge of:
+
+1. [Docker](https://github.com/Senzing/knowledge-base/blob/master/WHATIS/docker.md)
+1. [Kubernetes](https://github.com/Senzing/knowledge-base/blob/master/WHATIS/kubernetes.md)
+1. [Helm](https://github.com/Senzing/knowledge-base/blob/master/WHATIS/helm.md)
+1. [Rancher](https://github.com/Senzing/knowledge-base/blob/master/WHATIS/rancher.md)
 
 ## Demonstrate
 
