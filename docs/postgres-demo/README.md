@@ -210,7 +210,7 @@ This repository assumes a working knowledge of:
     1. Modify ${RANCHER_ANSWERS_DIR}/senzing-api-server.yaml
         1. **image.repository**
             1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/senzing-api-server"`
-    1. Modify ${RANCHER_ANSWERS_DIR}/stream-loaderpostgresql.yaml
+    1. Modify ${RANCHER_ANSWERS_DIR}/stream-loader-postgresql.yaml
         1. **image.repository**
             1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/stream-loader"`
         1. **senzing.kafkaBootstrapServerHost**
