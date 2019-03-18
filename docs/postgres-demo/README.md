@@ -191,7 +191,7 @@ This repository assumes a working knowledge of:
     export RANCHER_ANSWERS_DIR=${GIT_REPOSITORY_DIR}/rancher-answers
     mkdir -p ${RANCHER_ANSWERS_DIR}
     cp ${GIT_REPOSITORY_DIR}/rancher-answers-templates/*.yaml ${RANCHER_ANSWERS_DIR}
-    ````
+    ```
 
     1. Modify ${RANCHER_ANSWERS_DIR}/hello-world.yaml
         1. **image.repository**
@@ -241,7 +241,7 @@ This repository assumes a working knowledge of:
     export KUBERNETES_DIR=${GIT_REPOSITORY_DIR}/kubernetes-2
     mkdir -p ${KUBERNETES_DIR}
     cp ${GIT_REPOSITORY_DIR}/kubernetes-templates/*.yaml ${KUBERNETES_DIR}
-    ````
+    ```
 
     1. Modify ${KUBERNETES_DIR}/persistent-volume-claim-opt-senzing.yaml
         1. **namespace**
@@ -435,7 +435,7 @@ This repository assumes a working knowledge of:
     rancher kubectl port-forward \
       --namespace ${RANCHER_NAMESPACE_NAME} \
       svc/${RANCHER_PREFIX}-phppgadmin-phppgadmin-chart 8081:8080
-    ````
+    ```
 
 1. Open browser to [localhost:8081](http://localhost:8081)
     1. Login
@@ -486,7 +486,7 @@ This repository assumes a working knowledge of:
     export RANCHER_NAMESPACE_NAME=${RANCHER_PREFIX}-namespace
 
     rancher kubectl port-forward --namespace ${RANCHER_NAMESPACE_NAME} svc/${RANCHER_PREFIX}-senzing-api-server 8889:8080
-    ````
+    ```
 
 ### Test Senzing REST API server
 

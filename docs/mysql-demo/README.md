@@ -1,4 +1,4 @@
-# rancher-demo
+# rancher-mysql-demo
 
 ## Overview
 
@@ -8,6 +8,10 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 
 ### Contents
 
+1. [Expectations](#expectations)
+    1. [Space](#space)
+    1. [Time](#time)
+    1. [Background knowledge](#background-knowledge)
 1. [Demonstrate](#demonstrate)
     1. [Set environment variables for repository](#set-environment-variables-for-repository)
     1. [Clone repository](#clone-repository)
@@ -15,7 +19,7 @@ The following diagram shows the relationship of the Rancher apps, docker contain
     1. [Set environment variables](#set-environment-variables)
     1. [Create custom answer files](#create-custom-answer-files)
     1. [Set default context](#set-default-context)
-    1. [Add catalog](#add-catalog)
+    1. [Add catalogs](#add-catalogs)
     1. [Create project](#create-project)
     1. [Switch context](#switch-context)
     1. [Create namespace](#create-namespace)
@@ -33,7 +37,26 @@ The following diagram shows the relationship of the Rancher apps, docker contain
     1. [Switch context for delete](#switch-context-for-delete)
     1. [Delete everything in project](#delete-everything-in-project)
     1. [Default context after cleanup](#default-context-after-cleanup)
-    1. [Delete catalog](#delete-catalog)
+    1. [Delete catalogs](#delete-catalogs)
+
+## Expectations
+
+### Space
+
+This repository and demonstration require 20 GB free disk space.
+
+### Time
+
+Budget 4 hours to get the demonstration up-and-running, depending on CPU and network speeds.
+
+### Background knowledge
+
+This repository assumes a working knowledge of:
+
+1. [Docker](https://github.com/Senzing/knowledge-base/blob/master/WHATIS/docker.md)
+1. [Kubernetes](https://github.com/Senzing/knowledge-base/blob/master/WHATIS/kubernetes.md)
+1. [Helm](https://github.com/Senzing/knowledge-base/blob/master/WHATIS/helm.md)
+1. [Rancher](https://github.com/Senzing/knowledge-base/blob/master/WHATIS/rancher.md)
 
 ## Demonstrate
 
@@ -85,10 +108,24 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 1. Make Senzing docker images.
 
     ```console
-    sudo docker build --tag senzing/hello-world https://github.com/senzing/docker-hello-world.git
-    sudo docker build --tag senzing/mock-data-generator https://github.com/senzing/mock-data-generator.git
-    sudo docker build --tag senzing/python-base https://github.com/senzing/docker-python-base.git
-    sudo docker build --tag senzing/stream-loader https://github.com/senzing/stream-loader.git
+    export BASE_IMAGE=senzing/python-mysql-base
+
+    sudo docker build \
+      --tag ${BASE_IMAGE} \
+      https://github.com/senzing/docker-python-mysql-base.git
+
+    sudo docker build \
+      --tag senzing/stream-loader \
+      --build-arg BASE_IMAGE=${BASE_IMAGE} \
+      https://github.com/senzing/stream-loader.git
+
+    sudo docker build \
+      --tag senzing/hello-world \
+      https://github.com/senzing/docker-hello-world.git
+
+    sudo docker build \
+      --tag senzing/mock-data-generator \
+      https://github.com/senzing/mock-data-generator.git
     ```
 
 1. Build [senzing/senzing-api-server](https://github.com/Senzing/senzing-api-server#using-docker) docker image.
@@ -106,17 +143,16 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 1. Add Senzing docker images to private docker registry.
 
     ```console
-    sudo docker tag senzing/hello-world ${DOCKER_REGISTRY_URL}/senzing/hello-world
-    sudo docker push ${DOCKER_REGISTRY_URL}/senzing/hello-world
-
-    sudo docker tag senzing/mock-data-generator ${DOCKER_REGISTRY_URL}/senzing/mock-data-generator
-    sudo docker push ${DOCKER_REGISTRY_URL}/senzing/mock-data-generator
-
-    sudo docker tag senzing/stream-loader ${DOCKER_REGISTRY_URL}/senzing/stream-loader
-    sudo docker push ${DOCKER_REGISTRY_URL}/senzing/stream-loader
-
-    sudo docker tag senzing/senzing-api-server ${DOCKER_REGISTRY_URL}/senzing/senzing-api-server
-    sudo docker push ${DOCKER_REGISTRY_URL}/senzing/senzing-api-server
+    for GIT_REPOSITORY in \
+      "hello-world" \
+      "mock-data-generator" \
+      "senzing-api-server" \
+      "stream-loader"; \
+    do \
+      sudo docker tag senzing/${GIT_REPOSITORY} ${DOCKER_REGISTRY_URL}/senzing/${GIT_REPOSITORY}; \
+      sudo docker push ${DOCKER_REGISTRY_URL}/senzing/${GIT_REPOSITORY}; \
+      sudo docker rmi  ${DOCKER_REGISTRY_URL}/senzing/${GIT_REPOSITORY}; \
+    done
     ```
 
 ### Set environment variables
@@ -125,52 +161,89 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 
     ```console
     export RANCHER_CLUSTER_NAME=my-rancher-cluster
-    export RANCHER_PREFIX=my
+    export RANCHER_PREFIX=my-senzing-mysql
     ```
 
-1. Set environment variables listed in "[Set environment variables for repository](#set-environment-variables-for-repository)".
+1. Set environment variables listed in "[Clone repository](#clone-repository)".
 1. Environment variables used in `rancher` CLI commands.
 
     ```console
-    export RANCHER_PROJECT_NAME=${RANCHER_PREFIX}-project-1
-    export RANCHER_NAMESPACE_NAME=${RANCHER_PREFIX}-namespace-1
+    export RANCHER_PROJECT_NAME=${RANCHER_PREFIX}-project
+    export RANCHER_NAMESPACE_NAME=${RANCHER_PREFIX}-namespace
     ```
 
 ### Create custom answer files
 
-1. Copy example answer files. Example:
+1. Variation #1. Quick method using `envsubst`.
 
     ```console
-    mkdir ${GIT_REPOSITORY_DIR}/rancher-answers
-    cp ${GIT_REPOSITORY_DIR}/rancher-answer-examples/*.yaml ${GIT_REPOSITORY_DIR}/rancher-answers
-    ````
+    export RANCHER_ANSWERS_DIR=${GIT_REPOSITORY_DIR}/rancher-answers
+    mkdir -p ${RANCHER_ANSWERS_DIR}
 
-1. Modify ${GIT_REPOSITORY_DIR}/rancher-answers/hello-world.yaml
-    1. **image.repository**
-        1. Template: "${DOCKER_REGISTRY_URL}/senzing/hello-world"
-        1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/hello-world"`  
-1. Modify ${GIT_REPOSITORY_DIR}/rancher-answers/mock-data-generator.yaml
-    1. **image.repository**
-        1. Template: "${DOCKER_REGISTRY_URL}/senzing/mock-data-generator"
-        1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/mock-data-generator"`
-    1. **senzing.kafkaBootstrapServerHost**
-        1. Use hostname of your Kafka server.
-1. Modify ${GIT_REPOSITORY_DIR}/rancher-answers/phpmyadmin.yaml
-    1. **db.host**
-        1. Use hostname of your mySQL server.
-1. Modify ${GIT_REPOSITORY_DIR}/rancher-answers/senzing-api-server.yaml
-    1. **image.repository**
-        1. Template: "${DOCKER_REGISTRY_URL}/senzing/senzing-api-server"
-        1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/senzing-api-server"`
-1. Modify ${GIT_REPOSITORY_DIR}/rancher-answers/stream-loader.yaml
-    1. **image.repository**
-        1. Template: "${DOCKER_REGISTRY_URL}/senzing/mock-data-generator"
-        1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/stream-loader"`
-    1. **senzing.databaseUrl**
-        1. Template:  "mysql://g2:g2@${MYSQL_HOSTNAME}:3306/G2"
-        1. Example: `mysql://g2:g2@my.sql-server.com:3306/G2`
-    1. **senzing.kafkaBootstrapServerHost**
-        1. Use hostname of your Kafka server.
+    for file in ${GIT_REPOSITORY_DIR}/rancher-answers-templates/*.yaml; \
+    do \
+      envsubst < "${file}" > "${RANCHER_ANSWERS_DIR}/$(basename ${file})";
+    done
+    ```
+
+1. Variation #2. Manually copy example files and modify. Example:
+
+    ```console
+    export RANCHER_ANSWERS_DIR=${GIT_REPOSITORY_DIR}/rancher-answers
+    mkdir -p ${RANCHER_ANSWERS_DIR}
+    cp ${GIT_REPOSITORY_DIR}/rancher-answers-templates/*.yaml ${RANCHER_ANSWERS_DIR}
+    ```
+
+    1. Modify ${RANCHER_ANSWERS_DIR}hello-world.yaml
+        1. **image.repository**
+            1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/hello-world"`  
+    1. Modify ${RANCHER_ANSWERS_DIR}/mock-data-generator.yaml
+        1. **image.repository**
+            1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/mock-data-generator"`
+        1. **senzing.kafkaBootstrapServerHost**
+            1. Use hostname of your Kafka server.
+    1. Modify ${RANCHER_ANSWERS_DIR}/phpmyadmin.yaml
+        1. **db.host**
+            1. Use hostname of your mySQL server.
+    1. Modify ${RANCHER_ANSWERS_DIR}/senzing-api-server.yaml
+        1. **image.repository**
+            1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/senzing-api-server"`
+    1. Modify ${RANCHER_ANSWERS_DIR}/stream-loader.yaml
+        1. **image.repository**
+            1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/stream-loader"`
+        1. **senzing.databaseUrl**
+            1. Example: `mysql://g2:g2@my.sql-server.com:3306/G2`
+        1. **senzing.kafkaBootstrapServerHost**
+            1. Use hostname of your Kafka server.
+
+### Create custom kubernetes configuration files
+
+1. Variation #1. Quick method using `envsubst`.
+
+    ```console
+    export KUBERNETES_DIR=${GIT_REPOSITORY_DIR}/kubernetes
+    mkdir -p ${KUBERNETES_DIR}
+
+    for file in ${GIT_REPOSITORY_DIR}/kubernetes-templates/*; \
+    do \
+      envsubst < "${file}" > "${KUBERNETES_DIR}/$(basename ${file})";
+    done
+    ```
+
+1. Variation #2. Manually copy example files and modify. Example:
+
+    ```console
+    export KUBERNETES_DIR=${GIT_REPOSITORY_DIR}/kubernetes-2
+    mkdir -p ${KUBERNETES_DIR}
+    cp ${GIT_REPOSITORY_DIR}/kubernetes-templates/*.yaml ${KUBERNETES_DIR}
+    ```
+
+    1. Modify ${KUBERNETES_DIR}/persistent-volume-claim-opt-senzing.yaml
+        1. **namespace**
+            1. Example: `namespace: my-senzing-mysql-namespace`
+    1. Modify ${KUBERNETES_DIR}/persistent-volume-claim-mysql.yaml
+        1. **namespace**
+            1. Example: `namespace: my-senzing-mysql-namespace`
 
 ### Set default context
 
@@ -181,7 +254,12 @@ The following diagram shows the relationship of the Rancher apps, docker contain
       Default
     ```
 
-### Add catalog
+### Add catalogs
+
+1. Add "Helm Stable"
+    1. In Rancher > Global > Catalogs:
+        1. Example URL is [https://localhost/g/catalog](https://localhost/g/catalog)
+        1. "Enable" Helm Stable
 
 1. Add Senzing catalog.  Example:
 
@@ -226,30 +304,18 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 1. If you do not already have an `/opt/senzing` directory on your system, visit
    [HOWTO - Create SENZING_DIR](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/create-senzing-dir.md).
 
-1. Copy example kubernetes files. Example:
-
-    ```console
-    mkdir ${GIT_REPOSITORY_DIR}/kubernetes
-    cp ${GIT_REPOSITORY_DIR}/kubernetes-examples/*.yaml ${GIT_REPOSITORY_DIR}/kubernetes
-    ````
-
-1. Modify ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-opt-senzing.yaml
-    1. **namespace**
-        1. Template: "${RANCHER_PREFIX}-namespace-1"
-        1. Example: `namespace: mytest-namespace-1`
-
-1. Create "persistent volume" for `/opt/senzing` directory. Example:
+1. Create persistent volumes. Example:
 
     ```console
     rancher kubectl create \
-      -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-opt-senzing.yaml
+      -f ${KUBERNETES_DIR}/persistent-volume-opt-senzing.yaml
     ```
 
-1. Create "persistent volume claim" for `/opt/senzing` directory. Example:
+1. Create persistent volume claims. Example:
 
     ```console
     rancher kubectl create \
-      -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-opt-senzing.yaml
+      -f ${KUBERNETES_DIR}/persistent-volume-claim-opt-senzing.yaml
     ```
 
 ### Install Kafka
@@ -258,7 +324,7 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 
     ```console
     rancher app install \
-      --answers ${GIT_REPOSITORY_DIR}/rancher-answers/kafka.yaml \
+      --answers ${RANCHER_ANSWERS_DIR}/kafka.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
       library-kafka \
       ${RANCHER_PREFIX}-kafka
@@ -270,7 +336,7 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 
     ```console
     rancher app install \
-      --answers ${GIT_REPOSITORY_DIR}/rancher-answers/kafka-test-client.yaml \
+      --answers ${RANCHER_ANSWERS_DIR}/kafka-test-client.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
       senzing-kafka-test-client \
       ${RANCHER_PREFIX}-kafka-test-client
@@ -279,8 +345,8 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 1. Run the test client. Run in a separate terminal window. Example:
 
     ```console
-    export RANCHER_PREFIX=my
-    export RANCHER_NAMESPACE_NAME=${RANCHER_PREFIX}-namespace-1
+    export RANCHER_PREFIX=my-senzing-mysql
+    export RANCHER_NAMESPACE_NAME=${RANCHER_PREFIX}-namespace
 
     rancher kubectl exec \
       -it \
@@ -303,6 +369,8 @@ The following diagram shows the relationship of the Rancher apps, docker contain
       ${RANCHER_PREFIX}-mysql
     ```
 
+### Initialize database
+
 ### Install phpMyAdmin
 
 1. Install phpMyAdmin app. Example:
@@ -322,17 +390,13 @@ The following diagram shows the relationship of the Rancher apps, docker contain
     export RANCHER_NAMESPACE_NAME=${RANCHER_PREFIX}-namespace-1
 
     rancher kubectl port-forward --namespace ${RANCHER_NAMESPACE_NAME} svc/my-phpmyadmin 8081:80
-    ````
+    ```
 
 1. Open browser to [localhost:8081](http://localhost:8081)
     1. Login
        1. mysqlUser/mysqlPassword in `rancher-answers/mysql.yaml`
        1. Default: username: g2  password: g2
-    1. On left-hand navigation, select "G2" database.
-    1. Select "Import" tab.
-    1. Click "Browse..." button.
-        1. Choose `/opt/senzing/g2/data/g2core-schema-mysql-create.sql`.
-    1. Click "Go" button.
+    1. On left-hand navigation, select "G2" database to explore.
 
 ### Test access to senzing docker images
 
@@ -374,7 +438,7 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 
     ```console
     rancher app install \
-      --answers ${GIT_REPOSITORY_DIR}/rancher-answers/mock-data-generator.yaml \
+      --answers ${RANCHER_ANSWERS_DIR}/mock-data-generator.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
       senzing-mock-data-generator \
       ${RANCHER_PREFIX}-senzing-mock-data-generator
@@ -386,7 +450,7 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 
     ```console
     rancher app install \
-      --answers ${GIT_REPOSITORY_DIR}/rancher-answers/stream-loader.yaml \
+      --answers ${RANCHER_ANSWERS_DIR}/stream-loader-mysql.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
       senzing-stream-loader \
       ${RANCHER_PREFIX}-senzing-stream-loader
@@ -398,7 +462,7 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 
     ```console
     rancher app install \
-      --answers ${GIT_REPOSITORY_DIR}/rancher-answers/senzing-api-server.yaml \
+      --answers ${RANCHER_ANSWERS_DIR}/senzing-api-server.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
       senzing-api-server \
       ${RANCHER_PREFIX}-senzing-api-server
@@ -407,11 +471,11 @@ The following diagram shows the relationship of the Rancher apps, docker contain
 1. Port forward to local machine.  Run in a separate terminal window. Example:
 
     ```console
-    export RANCHER_PREFIX=my
-    export RANCHER_NAMESPACE_NAME=${RANCHER_PREFIX}-namespace-1
+    export RANCHER_PREFIX=my-senzing-mysql
+    export RANCHER_NAMESPACE_NAME=${RANCHER_PREFIX}-namespace
 
-    rancher kubectl port-forward --namespace ${RANCHER_NAMESPACE_NAME} svc/my-senzing-api-server 8889:8080
-    ````
+    rancher kubectl port-forward --namespace ${RANCHER_NAMESPACE_NAME} svc/${RANCHER_PREFIX}-senzing-api-server 8889:8080
+    ```
 
 ### Test Senzing REST API server
 
@@ -425,6 +489,7 @@ See `rancher kubectl port-forward ...` above.
 
     curl -X GET ${SENZING_API_SERVICE}/heartbeat
     curl -X GET ${SENZING_API_SERVICE}/license
+    curl -X GET ${SENZING_API_SERVICE}/entities/1
     ```
 
 ## Cleanup
@@ -450,6 +515,7 @@ See `rancher kubectl port-forward ...` above.
     rancher app delete ${RANCHER_PREFIX}-senzing-hello-world
     rancher app delete ${RANCHER_PREFIX}-phpmyadmin
     rancher app delete ${RANCHER_PREFIX}-mysql
+    rancher app delete ${RANCHER_PREFIX}-mysql-client
     rancher app delete ${RANCHER_PREFIX}-kafka-test-client
     rancher app delete ${RANCHER_PREFIX}-kafka
     rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-opt-senzing.yaml
@@ -466,7 +532,7 @@ See `rancher kubectl port-forward ...` above.
     rancher context switch Default
     ```
 
-### Delete catalog
+### Delete catalogs
 
 1. Delete Senzing catalog. Example:
 
