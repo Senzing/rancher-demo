@@ -119,10 +119,6 @@ This repository assumes a working knowledge of:
       https://github.com/senzing/stream-loader.git
 
     sudo docker build \
-      --tag senzing/hello-world \
-      https://github.com/senzing/docker-hello-world.git
-
-    sudo docker build \
       --tag senzing/mock-data-generator \
       https://github.com/senzing/mock-data-generator.git
     ```
@@ -143,7 +139,6 @@ This repository assumes a working knowledge of:
 
     ```console
     for GIT_REPOSITORY in \
-      "hello-world" \
       "mock-data-generator" \
       "senzing-api-server" \
       "stream-loader"; \
@@ -193,9 +188,6 @@ This repository assumes a working knowledge of:
     cp ${GIT_REPOSITORY_DIR}/rancher-answers-templates/*.yaml ${RANCHER_ANSWERS_DIR}
     ```
 
-    1. Modify ${RANCHER_ANSWERS_DIR}/hello-world.yaml
-        1. **image.repository**
-            1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/hello-world"`
     1. Modify ${RANCHER_ANSWERS_DIR}/mock-data-generator.yaml
         1. **image.repository**
             1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/mock-data-generator"`
@@ -210,7 +202,7 @@ This repository assumes a working knowledge of:
     1. Modify ${RANCHER_ANSWERS_DIR}/senzing-api-server.yaml
         1. **image.repository**
             1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/senzing-api-server"`
-    1. Modify ${RANCHER_ANSWERS_DIR}/stream-loaderpostgresql.yaml
+    1. Modify ${RANCHER_ANSWERS_DIR}/stream-loader-postgresql.yaml
         1. **image.repository**
             1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/stream-loader"`
         1. **senzing.kafkaBootstrapServerHost**
@@ -406,7 +398,7 @@ This repository assumes a working knowledge of:
     rancher app install \
       --answers ${RANCHER_ANSWERS_DIR}/postgresql-client.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
-      postgresql-client \
+      senzing-postgresql-client \
       ${RANCHER_PREFIX}-postgresql-client
     ```
 
@@ -418,7 +410,7 @@ This repository assumes a working knowledge of:
     rancher app install \
       --answers ${RANCHER_ANSWERS_DIR}/phppgadmin.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
-      phppgadmin-chart \
+      jjcollinge-phppgadmin-chart \
       ${RANCHER_PREFIX}-phppgadmin
     ```
 
@@ -451,7 +443,7 @@ This repository assumes a working knowledge of:
     rancher app install \
       --answers ${RANCHER_ANSWERS_DIR}/mock-data-generator.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
-      senzing-mock-data-generator \
+      senzing-senzing-mock-data-generator \
       ${RANCHER_PREFIX}-senzing-mock-data-generator
     ```
 
@@ -463,7 +455,7 @@ This repository assumes a working knowledge of:
     rancher app install \
       --answers ${RANCHER_ANSWERS_DIR}/stream-loader-postgresql.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
-      senzing-stream-loader \
+      senzing-senzing-stream-loader \
       ${RANCHER_PREFIX}-senzing-stream-loader
     ```
 
@@ -475,7 +467,7 @@ This repository assumes a working knowledge of:
     rancher app install \
       --answers ${RANCHER_ANSWERS_DIR}/senzing-api-server.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
-      senzing-api-server \
+      senzing-senzing-api-server \
       ${RANCHER_PREFIX}-senzing-api-server
     ```
 

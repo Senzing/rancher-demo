@@ -13,11 +13,11 @@ The following diagram shows the relationship of the Rancher apps, docker contain
     1. [Time](#time)
     1. [Background knowledge](#background-knowledge)
 1. [Demonstrate](#demonstrate)
-    1. [Set environment variables for repository](#set-environment-variables-for-repository)
     1. [Clone repository](#clone-repository)
     1. [Prerequisites](#prerequisites)
     1. [Set environment variables](#set-environment-variables)
     1. [Create custom answer files](#create-custom-answer-files)
+    1. [Create custom kubernetes configuration files](#create-custom-kubernetes-configuration-files)
     1. [Set default context](#set-default-context)
     1. [Add catalogs](#add-catalogs)
     1. [Create project](#create-project)
@@ -28,7 +28,6 @@ The following diagram shows the relationship of the Rancher apps, docker contain
     1. [Install Kafka test client](#install-kafka-test-client)
     1. [Install mySQL](#install-mysql)
     1. [Install phpMyAdmin](#install-phpmyadmin)
-    1. [Test access to senzing docker images](#test-access-to-senzing-docker-images)
     1. [Install mock-data-generator](#install-mock-data-generator)
     1. [Install stream-loader](#install-stream-loader)
     1. [Install senzing-api-server](#install-senzing-api-server)
@@ -120,12 +119,12 @@ This repository assumes a working knowledge of:
       https://github.com/senzing/stream-loader.git
 
     sudo docker build \
-      --tag senzing/hello-world \
-      https://github.com/senzing/docker-hello-world.git
-
-    sudo docker build \
       --tag senzing/mock-data-generator \
       https://github.com/senzing/mock-data-generator.git
+
+    sudo docker build \
+      --tag senzing/mysql-init \
+      https://github.com/senzing/docker-mysql-init.git
     ```
 
 1. Build [senzing/senzing-api-server](https://github.com/Senzing/senzing-api-server#using-docker) docker image.
@@ -144,8 +143,8 @@ This repository assumes a working knowledge of:
 
     ```console
     for GIT_REPOSITORY in \
-      "hello-world" \
       "mock-data-generator" \
+      "mysql-init" \
       "senzing-api-server" \
       "stream-loader"; \
     do \
@@ -194,27 +193,22 @@ This repository assumes a working knowledge of:
     cp ${GIT_REPOSITORY_DIR}/rancher-answers-templates/*.yaml ${RANCHER_ANSWERS_DIR}
     ```
 
-    1. Modify ${RANCHER_ANSWERS_DIR}hello-world.yaml
-        1. **image.repository**
-            1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/hello-world"`  
     1. Modify ${RANCHER_ANSWERS_DIR}/mock-data-generator.yaml
         1. **image.repository**
             1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/mock-data-generator"`
         1. **senzing.kafkaBootstrapServerHost**
-            1. Use hostname of your Kafka server.
+            1. Example: `'senzing.kafkaBootstrapServerHost': "my-senzing-mysql-kafka-kafka"`
     1. Modify ${RANCHER_ANSWERS_DIR}/phpmyadmin.yaml
         1. **db.host**
-            1. Use hostname of your mySQL server.
+            1. Example: `'db.host': "my-senzing-mysql-mysql-mysql"`
     1. Modify ${RANCHER_ANSWERS_DIR}/senzing-api-server.yaml
         1. **image.repository**
             1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/senzing-api-server"`
-    1. Modify ${RANCHER_ANSWERS_DIR}/stream-loader.yaml
+    1. Modify ${RANCHER_ANSWERS_DIR}/stream-loader-mysql.yaml
         1. **image.repository**
             1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/stream-loader"`
-        1. **senzing.databaseUrl**
-            1. Example: `mysql://g2:g2@my.sql-server.com:3306/G2`
         1. **senzing.kafkaBootstrapServerHost**
-            1. Use hostname of your Kafka server.
+            1. Example: `'senzing.kafkaBootstrapServerHost': "my-senzing-mysql-kafka-kafka"`
 
 ### Create custom kubernetes configuration files
 
@@ -239,9 +233,6 @@ This repository assumes a working knowledge of:
     ```
 
     1. Modify ${KUBERNETES_DIR}/persistent-volume-claim-opt-senzing.yaml
-        1. **namespace**
-            1. Example: `namespace: my-senzing-mysql-namespace`
-    1. Modify ${KUBERNETES_DIR}/persistent-volume-claim-mysql.yaml
         1. **namespace**
             1. Example: `namespace: my-senzing-mysql-namespace`
 
@@ -363,7 +354,7 @@ This repository assumes a working knowledge of:
 
     ```console
     rancher app install \
-      --answers ${GIT_REPOSITORY_DIR}/rancher-answers/mysql.yaml \
+      --answers ${RANCHER_ANSWERS_DIR}/mysql.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
       library-mysql \
       ${RANCHER_PREFIX}-mysql
@@ -371,13 +362,23 @@ This repository assumes a working knowledge of:
 
 ### Initialize database
 
+1. Example:
+
+    ```console
+    rancher app install \
+      --answers ${RANCHER_ANSWERS_DIR}/mysql-client.yaml \
+      --namespace ${RANCHER_NAMESPACE_NAME} \
+      senzing-mysql-client \
+      ${RANCHER_PREFIX}-mysql-client
+    ```
+
 ### Install phpMyAdmin
 
 1. Install phpMyAdmin app. Example:
 
     ```console
     rancher app install \
-      --answers ${GIT_REPOSITORY_DIR}/rancher-answers/phpmyadmin.yaml \
+      --answers ${RANCHER_ANSWERS_DIR}/phpmyadmin.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
       senzing-phpmyadmin \
       ${RANCHER_PREFIX}-phpmyadmin
@@ -386,10 +387,12 @@ This repository assumes a working knowledge of:
 1. Port forward to local machine.  Run in a separate terminal window. Example:
 
     ```console
-    export RANCHER_PREFIX=my
-    export RANCHER_NAMESPACE_NAME=${RANCHER_PREFIX}-namespace-1
+    export RANCHER_PREFIX=my-senzing-mysql
+    export RANCHER_NAMESPACE_NAME=${RANCHER_PREFIX}-namespace
 
-    rancher kubectl port-forward --namespace ${RANCHER_NAMESPACE_NAME} svc/my-phpmyadmin 8081:80
+    rancher kubectl port-forward \
+      --namespace ${RANCHER_NAMESPACE_NAME} \
+      svc/${RANCHER_PREFIX}-phpmyadmin 8081:80
     ```
 
 1. Open browser to [localhost:8081](http://localhost:8081)
@@ -397,40 +400,6 @@ This repository assumes a working knowledge of:
        1. mysqlUser/mysqlPassword in `rancher-answers/mysql.yaml`
        1. Default: username: g2  password: g2
     1. On left-hand navigation, select "G2" database to explore.
-
-### Test access to senzing docker images
-
-1. Get Docker image from public `hub.docker.com` Docker registry. Example:
-
-    ```console
-    rancher app install \
-      --answers ${GIT_REPOSITORY_DIR}/rancher-answers/hello-world-on-hub-docker-com.yaml \
-      --namespace ${RANCHER_NAMESPACE_NAME} \
-      senzing-hello-world-on-hub-docker-com \
-      ${RANCHER_PREFIX}-senzing-hello-world-on-hub-docker-com
-    ```
-
-1. Get Docker image from private Docker registry. Example:
-
-    ```console
-    rancher app install \
-      --answers ${GIT_REPOSITORY_DIR}/rancher-answers/hello-world.yaml \
-      --namespace ${RANCHER_NAMESPACE_NAME} \
-      senzing-hello-world \
-      ${RANCHER_PREFIX}-senzing-hello-world
-    ```
-
-1. If both applications work, then Senzing docker images have been properly registered in your private
-   docker registry and Rancher can retrieve the images.
-   1. If applications do not work, revisit
-      "[Senzing docker images](#senzing-docker-images)" and
-      "[Docker registry](#docker-registry)".
-1. Delete the test apps.
-
-    ```console
-    rancher app delete ${RANCHER_PREFIX}-senzing-hello-world-on-hub-docker-com
-    rancher app delete ${RANCHER_PREFIX}-senzing-hello-world
-    ```
 
 ### Install mock-data-generator
 
@@ -440,7 +409,7 @@ This repository assumes a working knowledge of:
     rancher app install \
       --answers ${RANCHER_ANSWERS_DIR}/mock-data-generator.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
-      senzing-mock-data-generator \
+      senzing-senzing-mock-data-generator \
       ${RANCHER_PREFIX}-senzing-mock-data-generator
     ```
 
@@ -452,7 +421,7 @@ This repository assumes a working knowledge of:
     rancher app install \
       --answers ${RANCHER_ANSWERS_DIR}/stream-loader-mysql.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
-      senzing-stream-loader \
+      senzing-senzing-stream-loader \
       ${RANCHER_PREFIX}-senzing-stream-loader
     ```
 
@@ -464,7 +433,7 @@ This repository assumes a working knowledge of:
     rancher app install \
       --answers ${RANCHER_ANSWERS_DIR}/senzing-api-server.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
-      senzing-api-server \
+      senzing-senzing-api-server \
       ${RANCHER_PREFIX}-senzing-api-server
     ```
 
@@ -511,11 +480,9 @@ See `rancher kubectl port-forward ...` above.
     rancher app delete ${RANCHER_PREFIX}-senzing-api-server
     rancher app delete ${RANCHER_PREFIX}-senzing-stream-loader
     rancher app delete ${RANCHER_PREFIX}-senzing-mock-data-generator
-    rancher app delete ${RANCHER_PREFIX}-senzing-hello-world-on-hub-docker-com
-    rancher app delete ${RANCHER_PREFIX}-senzing-hello-world
     rancher app delete ${RANCHER_PREFIX}-phpmyadmin
-    rancher app delete ${RANCHER_PREFIX}-mysql
     rancher app delete ${RANCHER_PREFIX}-mysql-client
+    rancher app delete ${RANCHER_PREFIX}-mysql
     rancher app delete ${RANCHER_PREFIX}-kafka-test-client
     rancher app delete ${RANCHER_PREFIX}-kafka
     rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-opt-senzing.yaml
