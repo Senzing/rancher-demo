@@ -28,7 +28,6 @@ The following diagram shows the relationship of the Rancher apps, docker contain
     1. [Install Kafka test client](#install-kafka-test-client)
     1. [Install mySQL](#install-mysql)
     1. [Install phpMyAdmin](#install-phpmyadmin)
-    1. [Test access to senzing docker images](#test-access-to-senzing-docker-images)
     1. [Install mock-data-generator](#install-mock-data-generator)
     1. [Install stream-loader](#install-stream-loader)
     1. [Install senzing-api-server](#install-senzing-api-server)
@@ -120,10 +119,6 @@ This repository assumes a working knowledge of:
       https://github.com/senzing/stream-loader.git
 
     sudo docker build \
-      --tag senzing/hello-world \
-      https://github.com/senzing/docker-hello-world.git
-
-    sudo docker build \
       --tag senzing/mock-data-generator \
       https://github.com/senzing/mock-data-generator.git
 
@@ -148,7 +143,6 @@ This repository assumes a working knowledge of:
 
     ```console
     for GIT_REPOSITORY in \
-      "hello-world" \
       "mock-data-generator" \
       "mysql-init" \
       "senzing-api-server" \
@@ -199,9 +193,6 @@ This repository assumes a working knowledge of:
     cp ${GIT_REPOSITORY_DIR}/rancher-answers-templates/*.yaml ${RANCHER_ANSWERS_DIR}
     ```
 
-    1. Modify ${RANCHER_ANSWERS_DIR}/hello-world.yaml
-        1. **image.repository**
-            1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/hello-world"`
     1. Modify ${RANCHER_ANSWERS_DIR}/mock-data-generator.yaml
         1. **image.repository**
             1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/mock-data-generator"`
@@ -399,7 +390,9 @@ This repository assumes a working knowledge of:
     export RANCHER_PREFIX=my-senzing-mysql
     export RANCHER_NAMESPACE_NAME=${RANCHER_PREFIX}-namespace
 
-    rancher kubectl port-forward --namespace ${RANCHER_NAMESPACE_NAME} svc/${RANCHER_PREFIX}-phpmyadmin 8081:80
+    rancher kubectl port-forward \
+      --namespace ${RANCHER_NAMESPACE_NAME} \
+      svc/${RANCHER_PREFIX}-phpmyadmin 8081:80
     ```
 
 1. Open browser to [localhost:8081](http://localhost:8081)
@@ -407,40 +400,6 @@ This repository assumes a working knowledge of:
        1. mysqlUser/mysqlPassword in `rancher-answers/mysql.yaml`
        1. Default: username: g2  password: g2
     1. On left-hand navigation, select "G2" database to explore.
-
-### Test access to senzing docker images
-
-1. Get Docker image from public `hub.docker.com` Docker registry. Example:
-
-    ```console
-    rancher app install \
-      --answers ${RANCHER_ANSWERS_DIR}/hello-world-on-hub-docker-com.yaml \
-      --namespace ${RANCHER_NAMESPACE_NAME} \
-      senzing-senzing-hello-world-on-hub-docker-com \
-      ${RANCHER_PREFIX}-senzing-hello-world-on-hub-docker-com
-    ```
-
-1. Get Docker image from private Docker registry. Example:
-
-    ```console
-    rancher app install \
-      --answers ${RANCHER_ANSWERS_DIR}/hello-world.yaml \
-      --namespace ${RANCHER_NAMESPACE_NAME} \
-      senzing-senzing-hello-world \
-      ${RANCHER_PREFIX}-senzing-hello-world
-    ```
-
-1. If both applications work, then Senzing docker images have been properly registered in your private
-   docker registry and Rancher can retrieve the images.
-   1. If applications do not work, revisit
-      "[Senzing docker images](#senzing-docker-images)" and
-      "[Docker registry](#docker-registry)".
-1. Delete the test apps.
-
-    ```console
-    rancher app delete ${RANCHER_PREFIX}-senzing-hello-world-on-hub-docker-com
-    rancher app delete ${RANCHER_PREFIX}-senzing-hello-world
-    ```
 
 ### Install mock-data-generator
 
@@ -521,8 +480,6 @@ See `rancher kubectl port-forward ...` above.
     rancher app delete ${RANCHER_PREFIX}-senzing-api-server
     rancher app delete ${RANCHER_PREFIX}-senzing-stream-loader
     rancher app delete ${RANCHER_PREFIX}-senzing-mock-data-generator
-    rancher app delete ${RANCHER_PREFIX}-senzing-hello-world-on-hub-docker-com
-    rancher app delete ${RANCHER_PREFIX}-senzing-hello-world
     rancher app delete ${RANCHER_PREFIX}-phpmyadmin
     rancher app delete ${RANCHER_PREFIX}-mysql-client
     rancher app delete ${RANCHER_PREFIX}-mysql
