@@ -13,11 +13,11 @@ The following diagram shows the relationship of the Rancher apps, docker contain
     1. [Time](#time)
     1. [Background knowledge](#background-knowledge)
 1. [Demonstrate](#demonstrate)
-    1. [Set environment variables for repository](#set-environment-variables-for-repository)
     1. [Clone repository](#clone-repository)
     1. [Prerequisites](#prerequisites)
     1. [Set environment variables](#set-environment-variables)
     1. [Create custom answer files](#create-custom-answer-files)
+    1. [Create custom kubernetes configuration files](#create-custom-kubernetes-configuration-files)
     1. [Set default context](#set-default-context)
     1. [Add catalogs](#add-catalogs)
     1. [Create project](#create-project)
@@ -126,7 +126,7 @@ This repository assumes a working knowledge of:
     sudo docker build \
       --tag senzing/mock-data-generator \
       https://github.com/senzing/mock-data-generator.git
-      
+
     sudo docker build \
       --tag senzing/mysql-init \
       https://github.com/senzing/docker-mysql-init.git
