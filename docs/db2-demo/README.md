@@ -215,7 +215,7 @@ This repository assumes a working knowledge of:
             1. Example: `senzing.kafkaBootstrapServerHost: "my-senzing-db2-kafka-kafka"`
     1. Modify ${RANCHER_ANSWERS_DIR}/ibm-db2oltp-dev.yaml
         1. **global.image.secretName**
-            1. Example: `global.image.secretName: "my-docker.io"`
+            1. Example: `global.image.secretName: "my-docker-io"`
     1. Modify ${RANCHER_ANSWERS_DIR}/senzing-api-server.yaml
         1. **image.repository**
             1. Example: `image.repository: "my.docker-registry.com:5000/senzing/senzing-api-server"`
@@ -335,7 +335,7 @@ to retrieve the images.
     export DOCKER_USERNAME=me@example.com
     export DOCKER_PASSWORD=fake-password
 
-    rancher kubectl create secret docker-registry ${RANCHER_PREFIX}-docker.io \
+    rancher kubectl create secret docker-registry ${RANCHER_PREFIX}-docker-io \
       --namespace ${RANCHER_NAMESPACE_NAME} \
       --docker-server=docker.io \
       --docker-username=${DOCKER_USERNAME} \
@@ -438,11 +438,12 @@ to retrieve the images.
 
     ```console
     su - db2inst1
-    
-    export DB2_HOST=my-senzing-ibm-db2oltp-dev-db2
-    
-    db2 catalog tcpip node G2-node remote ${DB2_HOST} server 50000
-    db2 catalog database G2 at node G2-node
+
+    export RANCHER_PREFIX=my
+    export DB2_HOST=${RANCHER_PREFIX}-ibm-db2-ibm-db2oltp-dev-db2
+
+    db2 catalog tcpip node G2_node remote ${DB2_HOST} server 50000
+    db2 catalog database G2 at node G2_node
     db2 terminate
     ```
 
@@ -548,6 +549,7 @@ See `rancher kubectl port-forward ...` above.
     rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-db2-data-stor.yaml
     rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-opt-senzing.yaml
     rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-db2-data-stor.yaml
+    rancher kubectl delete secret docker-registry ${RANCHER_PREFIX}-docker-io
     rancher namespace delete ${RANCHER_NAMESPACE_NAME}
     rancher projects delete ${RANCHER_PROJECT_NAME}
     ```  
@@ -565,6 +567,6 @@ See `rancher kubectl port-forward ...` above.
 1. Delete Senzing catalog. Example:
 
     ```console
-    rancher catalog delete ibm    
+    rancher catalog delete ibm
     rancher catalog delete senzing
     ```
