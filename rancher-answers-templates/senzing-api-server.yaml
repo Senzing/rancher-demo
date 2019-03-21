@@ -1,4 +1,4 @@
-'image.repository': "${DOCKER_REGISTRY_URL}/senzing/senzing-api-server"
-'image.tag': "latest"
-'senzing.concurrency': 10
-'senzing.optSenzingClaim': "opt-senzing-claim"
+image.repository: "${DOCKER_REGISTRY_URL}/senzing/senzing-api-server"
+image.tag: "latest"
+senzing.concurrency: 10
+senzing.optSenzingClaim: "opt-senzing-claim"

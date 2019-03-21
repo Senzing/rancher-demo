@@ -23,11 +23,12 @@ The following diagram shows the relationship of the Rancher apps, docker contain
     1. [Create project](#create-project)
     1. [Switch context](#switch-context)
     1. [Create namespace](#create-namespace)
+    1. [Add registries](#add-registries)
     1. [Create persistent volume](#create-persistent-volume)
     1. [Install Kafka](#install-kafka)
     1. [Install Kafka test client](#install-kafka-test-client)
-    1. [Install db2](#install-db2)
-    1. [Install phpPgAdmin](#install-phppgadmin)
+    1. [Install DB2](#install-db2)
+    1. [Initialize database](#initialize-database)
     1. [Install mock-data-generator](#install-mock-data-generator)
     1. [Install stream-loader](#install-stream-loader)
     1. [Install senzing-api-server](#install-senzing-api-server)
@@ -174,7 +175,7 @@ This repository assumes a working knowledge of:
 
     ```console
     export RANCHER_CLUSTER_NAME=my-rancher-cluster
-    export RANCHER_PREFIX=my-senzing-db2
+    export RANCHER_PREFIX=my
     ```
 
 1. Set environment variables listed in "[Clone repository](#clone-repository)".
@@ -209,23 +210,22 @@ This repository assumes a working knowledge of:
 
     1. Modify ${RANCHER_ANSWERS_DIR}/mock-data-generator.yaml
         1. **image.repository**
-            1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/mock-data-generator"`
+            1. Example: `image.repository: "my.docker-registry.com:5000/senzing/mock-data-generator"`
         1. **senzing.kafkaBootstrapServerHost**
-            1. Example: `'senzing.kafkaBootstrapServerHost': "my-senzing-db2-kafka-kafka"`
-    1. Modify ${RANCHER_ANSWERS_DIR}/phppgadmin.yaml
-        1. **phppgadmin.serverHost**
-            1. Example: `'phppgadmin.serverHost': "my-senzing-db2-db2-db2"`
-    1. Modify ${RANCHER_ANSWERS_DIR}/db2-client.yaml
-        1. **db2.host**
-            1. Example: `'db2.host': "my-senzing-db2-db2-db2"`
+            1. Example: `senzing.kafkaBootstrapServerHost: "my-senzing-db2-kafka-kafka"`
+    1. Modify ${RANCHER_ANSWERS_DIR}/ibm-db2oltp-dev.yaml
+        1. **global.image.secretName**
+            1. Example: `global.image.secretName: "my-docker.io"`
     1. Modify ${RANCHER_ANSWERS_DIR}/senzing-api-server.yaml
         1. **image.repository**
-            1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/senzing-api-server"`
+            1. Example: `image.repository: "my.docker-registry.com:5000/senzing/senzing-api-server"`
     1. Modify ${RANCHER_ANSWERS_DIR}/stream-loader-db2.yaml
         1. **image.repository**
-            1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/stream-loader"`
+            1. Example: `image.repository: "my.docker-registry.com:5000/senzing/stream-loader"`
+        1. **senzing.databaseUrl**
+            1. Example: `senzing.databaseUrl: "db2://db2inst1:db2inst1@$my-ibm-db2oltp-dev-db2:50000/G2"`
         1. **senzing.kafkaBootstrapServerHost**
-            1. Example: `'senzing.kafkaBootstrapServerHost': "my-senzing-db2-kafka-kafka"`
+            1. Example: `senzing.kafkaBootstrapServerHost: "my-senzing-db2-kafka-kafka"`
 
 1. Modify configuration.
 
@@ -394,7 +394,7 @@ to retrieve the images.
 1. Run the test client. Run in a separate terminal window. Example:
 
     ```console
-    export RANCHER_PREFIX=my-senzing-db2
+    export RANCHER_PREFIX=my
     export RANCHER_NAMESPACE_NAME=${RANCHER_PREFIX}-namespace
 
     rancher kubectl exec \
@@ -500,7 +500,7 @@ to retrieve the images.
 1. Port forward to local machine.  Run in a separate terminal window. Example:
 
     ```console
-    export RANCHER_PREFIX=my-senzing-db2
+    export RANCHER_PREFIX=my
     export RANCHER_NAMESPACE_NAME=${RANCHER_PREFIX}-namespace
 
     rancher kubectl port-forward --namespace ${RANCHER_NAMESPACE_NAME} svc/${RANCHER_PREFIX}-senzing-api-server 8889:8080
