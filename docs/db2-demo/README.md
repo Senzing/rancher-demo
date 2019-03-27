@@ -491,7 +491,7 @@ to retrieve the images.
 
 ### Test Senzing REST API server
 
-*Note:* port 8889 on the localhost has been mapped to port 8080 in the docker container.
+*Note:* port 8889 on the localhost has been mapped to port 80 in the docker container.
 See `rancher kubectl port-forward ...` above.
 
 1. Example:
@@ -531,7 +531,7 @@ See `rancher kubectl port-forward ...` above.
     rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-db2-data-stor.yaml
     rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-opt-senzing.yaml
     rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-db2-data-stor.yaml
-    rancher kubectl delete secret docker-registry ${RANCHER_PREFIX}-docker-io
+    # rancher kubectl delete secret docker-registry ${RANCHER_PREFIX}-docker-io
     rancher namespace delete ${RANCHER_NAMESPACE_NAME}
     rancher projects delete ${RANCHER_PROJECT_NAME}
     ```  

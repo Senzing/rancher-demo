@@ -431,7 +431,7 @@ This repository assumes a working knowledge of:
 
     ```console
     rancher app install \
-      --answers ${RANCHER_ANSWERS_DIR}/senzing-api-server.yaml \
+      --answers ${RANCHER_ANSWERS_DIR}/senzing-api-server-mysql.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
       senzing-senzing-api-server \
       ${RANCHER_PREFIX}-senzing-api-server
@@ -443,12 +443,12 @@ This repository assumes a working knowledge of:
     export RANCHER_PREFIX=my-senzing-mysql
     export RANCHER_NAMESPACE_NAME=${RANCHER_PREFIX}-namespace
 
-    rancher kubectl port-forward --namespace ${RANCHER_NAMESPACE_NAME} svc/${RANCHER_PREFIX}-senzing-api-server 8889:8080
+    rancher kubectl port-forward --namespace ${RANCHER_NAMESPACE_NAME} svc/${RANCHER_PREFIX}-senzing-api-server 8889:80
     ```
 
 ### Test Senzing REST API server
 
-*Note:* port 8889 on the localhost has been mapped to port 8080 in the docker container.
+*Note:* port 8889 on the localhost has been mapped to port 80 in the docker container.
 See `rancher kubectl port-forward ...` above.
 
 1. Example:
