@@ -474,7 +474,7 @@ to retrieve the images.
 
     ```console
     rancher app install \
-      --answers ${RANCHER_ANSWERS_DIR}/senzing-api-server.yaml \
+      --answers ${RANCHER_ANSWERS_DIR}/senzing-api-server-db2.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
       senzing-senzing-api-server \
       ${RANCHER_PREFIX}-senzing-api-server
