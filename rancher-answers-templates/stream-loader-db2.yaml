@@ -1,7 +1,7 @@
 image.repository: "${DOCKER_REGISTRY_URL}/senzing/stream-loader"
 image.tag: "latest"
 senzing.subcommand: "kafka"
-senzing.databaseUrl: "postgresql://postgres:postgres@${RANCHER_PREFIX}-postgresql-postgresql:5432/G2"
+senzing.databaseUrl: "db2://db2inst1:db2inst1@${RANCHER_PREFIX}-ibm-db2-ibm-db2oltp-dev-db2:50000/G2"
 senzing.dataSource: "PEOPLE"
 senzing.entityType: "PEOPLE"
 senzing.kafkaBootstrapServerHost: "${RANCHER_PREFIX}-kafka-kafka"

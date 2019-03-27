@@ -1,4 +1,4 @@
-# rancher-postgresql-demo
+# rancher-db2-demo
 
 ## Overview
 
@@ -23,11 +23,12 @@ The following diagram shows the relationship of the Rancher apps, docker contain
     1. [Create project](#create-project)
     1. [Switch context](#switch-context)
     1. [Create namespace](#create-namespace)
+    1. [Add registries](#add-registries)
     1. [Create persistent volume](#create-persistent-volume)
     1. [Install Kafka](#install-kafka)
     1. [Install Kafka test client](#install-kafka-test-client)
-    1. [Install Postgresql](#install-postgresql)
-    1. [Install phpPgAdmin](#install-phppgadmin)
+    1. [Install DB2](#install-db2)
+    1. [Initialize database](#initialize-database)
     1. [Install mock-data-generator](#install-mock-data-generator)
     1. [Install stream-loader](#install-stream-loader)
     1. [Install senzing-api-server](#install-senzing-api-server)
@@ -79,6 +80,13 @@ This repository assumes a working knowledge of:
 
 ### Prerequisites
 
+#### IBM docker images
+
+1. Authorize [hub.docker.com/_/db2-developer-c-edition](https://hub.docker.com/_/db2-developer-c-edition)
+   1. Visit [hub.docker.com/_/db2-developer-c-edition](https://hub.docker.com/_/db2-developer-c-edition)
+   1. Click "Proceed to Checkout" button.
+   1. Agree to terms and click "Get Content" button.
+
 #### Rancher
 
 1. [Install Rancher](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/install-rancher.md).
@@ -104,23 +112,15 @@ This repository assumes a working knowledge of:
 
 #### Senzing docker images
 
+1. Build [senzing/senzing-base](https://github.com/Senzing/docker-senzing-base) docker image.
+
 1. Make Senzing docker images.
 
     ```console
-    export BASE_IMAGE=senzing/python-postgresql-base
-
-    sudo docker build \
-      --tag ${BASE_IMAGE} \
-      https://github.com/senzing/docker-python-postgresql-base.git
-
-    sudo docker build \
-      --tag senzing/stream-loader \
-      --build-arg BASE_IMAGE=${BASE_IMAGE} \
-      https://github.com/senzing/stream-loader.git
-
-    sudo docker build \
-      --tag senzing/mock-data-generator \
-      https://github.com/senzing/mock-data-generator.git
+    sudo docker build --tag senzing/db2                 https://github.com/senzing/docker-db2.git
+    sudo docker build --tag senzing/db2express-c        https://github.com/senzing/docker-db2express-c.git
+    sudo docker build --tag senzing/stream-loader       https://github.com/senzing/stream-loader.git
+    sudo docker build --tag senzing/mock-data-generator https://github.com/senzing/mock-data-generator.git
     ```
 
 1. Build [senzing/senzing-api-server](https://github.com/Senzing/senzing-api-server#using-docker) docker image.
@@ -139,6 +139,8 @@ This repository assumes a working knowledge of:
 
     ```console
     for GIT_REPOSITORY in \
+      "db2" \
+      "db2express-c" \
       "mock-data-generator" \
       "senzing-api-server" \
       "stream-loader"; \
@@ -155,7 +157,7 @@ This repository assumes a working knowledge of:
 
     ```console
     export RANCHER_CLUSTER_NAME=my-rancher-cluster
-    export RANCHER_PREFIX=my-senzing-postgresql
+    export RANCHER_PREFIX=my
     ```
 
 1. Set environment variables listed in "[Clone repository](#clone-repository)".
@@ -190,28 +192,27 @@ This repository assumes a working knowledge of:
 
     1. Modify ${RANCHER_ANSWERS_DIR}/mock-data-generator.yaml
         1. **image.repository**
-            1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/mock-data-generator"`
+            1. Example: `image.repository: "my.docker-registry.com:5000/senzing/mock-data-generator"`
         1. **senzing.kafkaBootstrapServerHost**
-            1. Example: `'senzing.kafkaBootstrapServerHost': "my-senzing-postgresql-kafka-kafka"`
-    1. Modify ${RANCHER_ANSWERS_DIR}/phppgadmin.yaml
-        1. **phppgadmin.serverHost**
-            1. Example: `'phppgadmin.serverHost': "my-senzing-postgresql-postgresql-postgresql"`
-    1. Modify ${RANCHER_ANSWERS_DIR}/postgres-client.yaml
-        1. **postgresql.host**
-            1. Example: `'postgresql.host': "my-senzing-postgresql-postgresql-postgresql"`
+            1. Example: `senzing.kafkaBootstrapServerHost: "my-senzing-db2-kafka-kafka"`
+    1. Modify ${RANCHER_ANSWERS_DIR}/ibm-db2oltp-dev.yaml
+        1. **global.image.secretName**
+            1. Example: `global.image.secretName: "my-docker-io"`
     1. Modify ${RANCHER_ANSWERS_DIR}/senzing-api-server.yaml
         1. **image.repository**
-            1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/senzing-api-server"`
-    1. Modify ${RANCHER_ANSWERS_DIR}/stream-loader-postgresql.yaml
+            1. Example: `image.repository: "my.docker-registry.com:5000/senzing/senzing-api-server"`
+    1. Modify ${RANCHER_ANSWERS_DIR}/stream-loader-db2.yaml
         1. **image.repository**
-            1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/stream-loader"`
+            1. Example: `image.repository: "my.docker-registry.com:5000/senzing/stream-loader"`
+        1. **senzing.databaseUrl**
+            1. Example: `senzing.databaseUrl: "db2://db2inst1:db2inst1@$my-ibm-db2oltp-dev-db2:50000/G2"`
         1. **senzing.kafkaBootstrapServerHost**
-            1. Example: `'senzing.kafkaBootstrapServerHost': "my-senzing-postgresql-kafka-kafka"`
+            1. Example: `senzing.kafkaBootstrapServerHost: "my-senzing-db2-kafka-kafka"`
 
 1. Modify configuration.
 
-    1. Modify ${RANCHER_ANSWERS_DIR}/postgresql.yaml
-        1. For configuration information, see [helm/postgresql](https://github.com/helm/charts/tree/master/stable/postgresql#configuration)
+    1. Modify ${RANCHER_ANSWERS_DIR}/db2.yaml
+        1. For configuration information, see [helm/db2](https://github.com/helm/charts/tree/master/stable/db2#configuration)
 
 ### Create custom kubernetes configuration files
 
@@ -237,10 +238,10 @@ This repository assumes a working knowledge of:
 
     1. Modify ${KUBERNETES_DIR}/persistent-volume-claim-opt-senzing.yaml
         1. **namespace**
-            1. Example: `namespace: my-senzing-postgresql-namespace`
-    1. Modify ${KUBERNETES_DIR}/persistent-volume-claim-postgresql.yaml
+            1. Example: `namespace: my-senzing-db2-namespace`
+    1. Modify ${KUBERNETES_DIR}/persistent-volume-claim-db2.yaml
         1. **namespace**
-            1. Example: `namespace: my-senzing-postgresql-namespace`
+            1. Example: `namespace: my-senzing-db2-namespace`
 
 ### Set default context
 
@@ -253,11 +254,6 @@ This repository assumes a working knowledge of:
 
 ### Add catalogs
 
-1. Add "Helm Stable"
-    1. In Rancher > Global > Catalogs:
-        1. Example URL is [https://localhost/g/catalog](https://localhost/g/catalog)
-        1. "Enable" Helm Stable
-
 1. Add Senzing catalog.  Example:
 
     ```console
@@ -266,12 +262,12 @@ This repository assumes a working knowledge of:
       https://github.com/senzing/charts
     ```
 
-1. Add jjcollinge catalog. Example:
+1. Add IBM catalog.  Example:
 
     ```console
     rancher catalog add \
-      jjcollinge \
-      https://github.com/jjcollinge/phppgadmin-chart
+      ibm \
+      https://github.com/IBM/charts
     ```
 
 ### Create project
@@ -304,6 +300,30 @@ This repository assumes a working knowledge of:
       ${RANCHER_NAMESPACE_NAME}
     ```
 
+### Add registries
+
+Because IBM docker images required acceptance of terms in
+[IBM docker images](#ibm-docker-images) step,
+Rancher/Kubernetes needs username/password to hub.docker.com
+to retrieve the images.
+
+1. Add docker.io registry.
+   :warning: hub.docker.com username and password used in previous
+   [IBM docker images](#ibm-docker-images)
+   step need to be supplied.
+   Example:
+
+    ```console
+    export DOCKER_USERNAME=me@example.com
+    export DOCKER_PASSWORD=fake-password
+
+    rancher kubectl create secret docker-registry ${RANCHER_PREFIX}-docker-io \
+      --namespace ${RANCHER_NAMESPACE_NAME} \
+      --docker-server=docker.io \
+      --docker-username=${DOCKER_USERNAME} \
+      --docker-password=${DOCKER_PASSWORD}
+    ```
+
 ### Create persistent volume
 
 1. If you do not already have an `/opt/senzing` directory on your system, visit
@@ -313,7 +333,7 @@ This repository assumes a working knowledge of:
 
     ```console
     rancher kubectl create \
-      -f ${KUBERNETES_DIR}/persistent-volume-postgresql.yaml
+      -f ${KUBERNETES_DIR}/persistent-volume-db2-data-stor.yaml
 
     rancher kubectl create \
       -f ${KUBERNETES_DIR}/persistent-volume-opt-senzing.yaml
@@ -323,7 +343,7 @@ This repository assumes a working knowledge of:
 
     ```console
     rancher kubectl create \
-      -f ${KUBERNETES_DIR}/persistent-volume-claim-postgresql.yaml
+      -f ${KUBERNETES_DIR}/persistent-volume-claim-db2-data-stor.yaml
 
     rancher kubectl create \
       -f ${KUBERNETES_DIR}/persistent-volume-claim-opt-senzing.yaml
@@ -356,7 +376,7 @@ This repository assumes a working knowledge of:
 1. Run the test client. Run in a separate terminal window. Example:
 
     ```console
-    export RANCHER_PREFIX=my-senzing-postgresql
+    export RANCHER_PREFIX=my
     export RANCHER_NAMESPACE_NAME=${RANCHER_PREFIX}-namespace
 
     rancher kubectl exec \
@@ -368,72 +388,61 @@ This repository assumes a working knowledge of:
         --from-beginning
     ```
 
-### Install Postgresql
-
-1. Create Configmap for `pg_hba.conf`. Example
-
-    ```console
-    rancher kubectl create configmap ${RANCHER_PREFIX}-pg-hba \
-      --namespace ${RANCHER_NAMESPACE_NAME} \
-      --from-file=${KUBERNETES_DIR}/pg_hba.conf
-    ```
-
-    Note: `pg_hba.conf` will be stored in the PersistentVolumeClaim.
+### Install DB2
 
 1. Example:
 
     ```console
     rancher app install \
-      --answers ${RANCHER_ANSWERS_DIR}/postgresql.yaml \
+      --answers ${RANCHER_ANSWERS_DIR}/ibm-db2oltp-dev.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
-      postgresql \
-      ${RANCHER_PREFIX}-postgresql
+      ibm-ibm-db2oltp-dev \
+      ${RANCHER_PREFIX}-ibm-db2oltp-dev
     ```
 
 ### Initialize database
 
-1. Example:
+1. Bring up a DB2 client. Example:
 
     ```console
     rancher app install \
-      --answers ${RANCHER_ANSWERS_DIR}/postgresql-client.yaml \
+      --answers ${RANCHER_ANSWERS_DIR}/db2-client.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
-      senzing-postgresql-client \
-      ${RANCHER_PREFIX}-postgresql-client
+      senzing-db2-client \
+      ${RANCHER_PREFIX}-db2-client
     ```
 
-### Install phpPgAdmin
-
-1. Install phpPgAdmin app. Example:
+1. Catalog "remote" database.
+   :warning: Look at the results of the
+   "[Initialize database](#initialize-database)"
+   step for the correct value of `DB2_HOST`.
+   In the DB2 client docker container, run
 
     ```console
-    rancher app install \
-      --answers ${RANCHER_ANSWERS_DIR}/phppgadmin.yaml \
-      --namespace ${RANCHER_NAMESPACE_NAME} \
-      jjcollinge-phppgadmin-chart \
-      ${RANCHER_PREFIX}-phppgadmin
+    su - db2inst1
+
+    export RANCHER_PREFIX=my
+    export DB2_HOST=${RANCHER_PREFIX}-ibm-db2-ibm-db2oltp-dev-db2
+
+    db2 catalog tcpip node G2_node remote ${DB2_HOST} server 50000
+    db2 catalog database G2 at node G2_node
+    db2 terminate
     ```
 
-1. Optional:  Background information on
-    [senzing/phppgadmin](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/build-docker-senzing-phppgadmin.md)
-    docker image.
-
-1. Port forward to local machine.  Run in a separate terminal window. Example:
+1. Populate database. In docker container, run
 
     ```console
-    export RANCHER_PREFIX=my-senzing-postgresql
-    export RANCHER_NAMESPACE_NAME=${RANCHER_PREFIX}-namespace
-
-    rancher kubectl port-forward \
-      --namespace ${RANCHER_NAMESPACE_NAME} \
-      svc/${RANCHER_PREFIX}-phppgadmin-phppgadmin-chart 8081:8080
+    db2 connect to g2 user db2inst1 using db2inst1
+    db2 -tf /opt/senzing/g2/data/g2core-schema-db2-create.sql
     ```
 
-1. Open browser to [localhost:8081](http://localhost:8081)
-    1. Login
-       1. See `rancher-answers/postgresql.yaml` for postgresqlUsername and postgresqlPassword
-       1. Default: username: `postgres`  password: `postgres`
-    1. On left-hand navigation, select "G2" database to explore.
+1. Exit docker container.
+
+    ```console
+    db2 connect reset
+    exit
+    exit
+    ```
 
 ### Install mock-data-generator
 
@@ -453,7 +462,7 @@ This repository assumes a working knowledge of:
 
     ```console
     rancher app install \
-      --answers ${RANCHER_ANSWERS_DIR}/stream-loader-postgresql.yaml \
+      --answers ${RANCHER_ANSWERS_DIR}/stream-loader-db2.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
       senzing-senzing-stream-loader \
       ${RANCHER_PREFIX}-senzing-stream-loader
@@ -465,7 +474,7 @@ This repository assumes a working knowledge of:
 
     ```console
     rancher app install \
-      --answers ${RANCHER_ANSWERS_DIR}/senzing-api-server.yaml \
+      --answers ${RANCHER_ANSWERS_DIR}/senzing-api-server-db2.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
       senzing-senzing-api-server \
       ${RANCHER_PREFIX}-senzing-api-server
@@ -474,15 +483,15 @@ This repository assumes a working knowledge of:
 1. Port forward to local machine.  Run in a separate terminal window. Example:
 
     ```console
-    export RANCHER_PREFIX=my-senzing-postgresql
+    export RANCHER_PREFIX=my
     export RANCHER_NAMESPACE_NAME=${RANCHER_PREFIX}-namespace
 
-    rancher kubectl port-forward --namespace ${RANCHER_NAMESPACE_NAME} svc/${RANCHER_PREFIX}-senzing-api-server 8889:8080
+    rancher kubectl port-forward --namespace ${RANCHER_NAMESPACE_NAME} svc/${RANCHER_PREFIX}-senzing-api-server 8889:80
     ```
 
 ### Test Senzing REST API server
 
-*Note:* port 8889 on the localhost has been mapped to port 8080 in the docker container.
+*Note:* port 8889 on the localhost has been mapped to port 80 in the docker container.
 See `rancher kubectl port-forward ...` above.
 
 1. Example:
@@ -514,15 +523,15 @@ See `rancher kubectl port-forward ...` above.
     rancher app delete ${RANCHER_PREFIX}-senzing-api-server
     rancher app delete ${RANCHER_PREFIX}-senzing-stream-loader
     rancher app delete ${RANCHER_PREFIX}-senzing-mock-data-generator
-    rancher app delete ${RANCHER_PREFIX}-phppgadmin
-    rancher app delete ${RANCHER_PREFIX}-postgresql-client
-    rancher app delete ${RANCHER_PREFIX}-postgresql
+    rancher app delete ${RANCHER_PREFIX}-db2-client
+    rancher app delete ${RANCHER_PREFIX}-ibm-db2oltp-dev
     rancher app delete ${RANCHER_PREFIX}-kafka-test-client
     rancher app delete ${RANCHER_PREFIX}-kafka
     rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-opt-senzing.yaml
-    rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-postgresql.yaml
+    rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-db2-data-stor.yaml
     rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-opt-senzing.yaml
-    rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-postgresql.yaml
+    rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-db2-data-stor.yaml
+    # rancher kubectl delete secret docker-registry ${RANCHER_PREFIX}-docker-io
     rancher namespace delete ${RANCHER_NAMESPACE_NAME}
     rancher projects delete ${RANCHER_PROJECT_NAME}
     ```  
@@ -540,6 +549,6 @@ See `rancher kubectl port-forward ...` above.
 1. Delete Senzing catalog. Example:
 
     ```console
+    rancher catalog delete ibm
     rancher catalog delete senzing
-    rancher catalog delete jjcollinge
     ```

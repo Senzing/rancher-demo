@@ -1,4 +1,4 @@
-# rancher-mysql-demo
+# rancher-postgresql-demo
 
 ## Overview
 
@@ -26,8 +26,8 @@ The following diagram shows the relationship of the Rancher apps, docker contain
     1. [Create persistent volume](#create-persistent-volume)
     1. [Install Kafka](#install-kafka)
     1. [Install Kafka test client](#install-kafka-test-client)
-    1. [Install mySQL](#install-mysql)
-    1. [Install phpMyAdmin](#install-phpmyadmin)
+    1. [Install Postgresql](#install-postgresql)
+    1. [Install phpPgAdmin](#install-phppgadmin)
     1. [Install mock-data-generator](#install-mock-data-generator)
     1. [Install stream-loader](#install-stream-loader)
     1. [Install senzing-api-server](#install-senzing-api-server)
@@ -107,11 +107,11 @@ This repository assumes a working knowledge of:
 1. Make Senzing docker images.
 
     ```console
-    export BASE_IMAGE=senzing/python-mysql-base
+    export BASE_IMAGE=senzing/python-postgresql-base
 
     sudo docker build \
       --tag ${BASE_IMAGE} \
-      https://github.com/senzing/docker-python-mysql-base.git
+      https://github.com/senzing/docker-python-postgresql-base.git
 
     sudo docker build \
       --tag senzing/stream-loader \
@@ -121,10 +121,6 @@ This repository assumes a working knowledge of:
     sudo docker build \
       --tag senzing/mock-data-generator \
       https://github.com/senzing/mock-data-generator.git
-
-    sudo docker build \
-      --tag senzing/mysql-init \
-      https://github.com/senzing/docker-mysql-init.git
     ```
 
 1. Build [senzing/senzing-api-server](https://github.com/Senzing/senzing-api-server#using-docker) docker image.
@@ -144,7 +140,6 @@ This repository assumes a working knowledge of:
     ```console
     for GIT_REPOSITORY in \
       "mock-data-generator" \
-      "mysql-init" \
       "senzing-api-server" \
       "stream-loader"; \
     do \
@@ -160,7 +155,7 @@ This repository assumes a working knowledge of:
 
     ```console
     export RANCHER_CLUSTER_NAME=my-rancher-cluster
-    export RANCHER_PREFIX=my-senzing-mysql
+    export RANCHER_PREFIX=my-senzing-postgresql
     ```
 
 1. Set environment variables listed in "[Clone repository](#clone-repository)".
@@ -197,18 +192,26 @@ This repository assumes a working knowledge of:
         1. **image.repository**
             1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/mock-data-generator"`
         1. **senzing.kafkaBootstrapServerHost**
-            1. Example: `'senzing.kafkaBootstrapServerHost': "my-senzing-mysql-kafka-kafka"`
-    1. Modify ${RANCHER_ANSWERS_DIR}/phpmyadmin.yaml
-        1. **db.host**
-            1. Example: `'db.host': "my-senzing-mysql-mysql-mysql"`
+            1. Example: `'senzing.kafkaBootstrapServerHost': "my-senzing-postgresql-kafka-kafka"`
+    1. Modify ${RANCHER_ANSWERS_DIR}/phppgadmin.yaml
+        1. **phppgadmin.serverHost**
+            1. Example: `'phppgadmin.serverHost': "my-senzing-postgresql-postgresql-postgresql"`
+    1. Modify ${RANCHER_ANSWERS_DIR}/postgres-client.yaml
+        1. **postgresql.host**
+            1. Example: `'postgresql.host': "my-senzing-postgresql-postgresql-postgresql"`
     1. Modify ${RANCHER_ANSWERS_DIR}/senzing-api-server.yaml
         1. **image.repository**
             1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/senzing-api-server"`
-    1. Modify ${RANCHER_ANSWERS_DIR}/stream-loader-mysql.yaml
+    1. Modify ${RANCHER_ANSWERS_DIR}/stream-loader-postgresql.yaml
         1. **image.repository**
             1. Example: `'image.repository': "my.docker-registry.com:5000/senzing/stream-loader"`
         1. **senzing.kafkaBootstrapServerHost**
-            1. Example: `'senzing.kafkaBootstrapServerHost': "my-senzing-mysql-kafka-kafka"`
+            1. Example: `'senzing.kafkaBootstrapServerHost': "my-senzing-postgresql-kafka-kafka"`
+
+1. Modify configuration.
+
+    1. Modify ${RANCHER_ANSWERS_DIR}/postgresql.yaml
+        1. For configuration information, see [helm/postgresql](https://github.com/helm/charts/tree/master/stable/postgresql#configuration)
 
 ### Create custom kubernetes configuration files
 
@@ -234,7 +237,10 @@ This repository assumes a working knowledge of:
 
     1. Modify ${KUBERNETES_DIR}/persistent-volume-claim-opt-senzing.yaml
         1. **namespace**
-            1. Example: `namespace: my-senzing-mysql-namespace`
+            1. Example: `namespace: my-senzing-postgresql-namespace`
+    1. Modify ${KUBERNETES_DIR}/persistent-volume-claim-postgresql.yaml
+        1. **namespace**
+            1. Example: `namespace: my-senzing-postgresql-namespace`
 
 ### Set default context
 
@@ -258,6 +264,14 @@ This repository assumes a working knowledge of:
     rancher catalog add \
       senzing \
       https://github.com/senzing/charts
+    ```
+
+1. Add jjcollinge catalog. Example:
+
+    ```console
+    rancher catalog add \
+      jjcollinge \
+      https://github.com/jjcollinge/phppgadmin-chart
     ```
 
 ### Create project
@@ -299,12 +313,18 @@ This repository assumes a working knowledge of:
 
     ```console
     rancher kubectl create \
+      -f ${KUBERNETES_DIR}/persistent-volume-postgresql.yaml
+
+    rancher kubectl create \
       -f ${KUBERNETES_DIR}/persistent-volume-opt-senzing.yaml
     ```
 
 1. Create persistent volume claims. Example:
 
     ```console
+    rancher kubectl create \
+      -f ${KUBERNETES_DIR}/persistent-volume-claim-postgresql.yaml
+
     rancher kubectl create \
       -f ${KUBERNETES_DIR}/persistent-volume-claim-opt-senzing.yaml
     ```
@@ -336,7 +356,7 @@ This repository assumes a working knowledge of:
 1. Run the test client. Run in a separate terminal window. Example:
 
     ```console
-    export RANCHER_PREFIX=my-senzing-mysql
+    export RANCHER_PREFIX=my-senzing-postgresql
     export RANCHER_NAMESPACE_NAME=${RANCHER_PREFIX}-namespace
 
     rancher kubectl exec \
@@ -348,16 +368,26 @@ This repository assumes a working knowledge of:
         --from-beginning
     ```
 
-### Install mySQL
+### Install Postgresql
+
+1. Create Configmap for `pg_hba.conf`. Example
+
+    ```console
+    rancher kubectl create configmap ${RANCHER_PREFIX}-pg-hba \
+      --namespace ${RANCHER_NAMESPACE_NAME} \
+      --from-file=${KUBERNETES_DIR}/pg_hba.conf
+    ```
+
+    Note: `pg_hba.conf` will be stored in the PersistentVolumeClaim.
 
 1. Example:
 
     ```console
     rancher app install \
-      --answers ${RANCHER_ANSWERS_DIR}/mysql.yaml \
+      --answers ${RANCHER_ANSWERS_DIR}/postgresql.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
-      library-mysql \
-      ${RANCHER_PREFIX}-mysql
+      postgresql \
+      ${RANCHER_PREFIX}-postgresql
     ```
 
 ### Initialize database
@@ -366,39 +396,43 @@ This repository assumes a working knowledge of:
 
     ```console
     rancher app install \
-      --answers ${RANCHER_ANSWERS_DIR}/mysql-client.yaml \
+      --answers ${RANCHER_ANSWERS_DIR}/postgresql-client.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
-      senzing-mysql-client \
-      ${RANCHER_PREFIX}-mysql-client
+      senzing-postgresql-client \
+      ${RANCHER_PREFIX}-postgresql-client
     ```
 
-### Install phpMyAdmin
+### Install phpPgAdmin
 
-1. Install phpMyAdmin app. Example:
+1. Install phpPgAdmin app. Example:
 
     ```console
     rancher app install \
-      --answers ${RANCHER_ANSWERS_DIR}/phpmyadmin.yaml \
+      --answers ${RANCHER_ANSWERS_DIR}/phppgadmin.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
-      senzing-phpmyadmin \
-      ${RANCHER_PREFIX}-phpmyadmin
+      jjcollinge-phppgadmin-chart \
+      ${RANCHER_PREFIX}-phppgadmin
     ```
+
+1. Optional:  Background information on
+    [senzing/phppgadmin](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/build-docker-senzing-phppgadmin.md)
+    docker image.
 
 1. Port forward to local machine.  Run in a separate terminal window. Example:
 
     ```console
-    export RANCHER_PREFIX=my-senzing-mysql
+    export RANCHER_PREFIX=my-senzing-postgresql
     export RANCHER_NAMESPACE_NAME=${RANCHER_PREFIX}-namespace
 
     rancher kubectl port-forward \
       --namespace ${RANCHER_NAMESPACE_NAME} \
-      svc/${RANCHER_PREFIX}-phpmyadmin 8081:80
+      svc/${RANCHER_PREFIX}-phppgadmin-phppgadmin-chart 8081:8080
     ```
 
 1. Open browser to [localhost:8081](http://localhost:8081)
     1. Login
-       1. mysqlUser/mysqlPassword in `rancher-answers/mysql.yaml`
-       1. Default: username: g2  password: g2
+       1. See `rancher-answers/postgresql.yaml` for postgresqlUsername and postgresqlPassword
+       1. Default: username: `postgres`  password: `postgres`
     1. On left-hand navigation, select "G2" database to explore.
 
 ### Install mock-data-generator
@@ -419,7 +453,7 @@ This repository assumes a working knowledge of:
 
     ```console
     rancher app install \
-      --answers ${RANCHER_ANSWERS_DIR}/stream-loader-mysql.yaml \
+      --answers ${RANCHER_ANSWERS_DIR}/stream-loader-postgresql.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
       senzing-senzing-stream-loader \
       ${RANCHER_PREFIX}-senzing-stream-loader
@@ -431,7 +465,7 @@ This repository assumes a working knowledge of:
 
     ```console
     rancher app install \
-      --answers ${RANCHER_ANSWERS_DIR}/senzing-api-server-mysql.yaml \
+      --answers ${RANCHER_ANSWERS_DIR}/senzing-api-server-postgresql.yaml \
       --namespace ${RANCHER_NAMESPACE_NAME} \
       senzing-senzing-api-server \
       ${RANCHER_PREFIX}-senzing-api-server
@@ -440,7 +474,7 @@ This repository assumes a working knowledge of:
 1. Port forward to local machine.  Run in a separate terminal window. Example:
 
     ```console
-    export RANCHER_PREFIX=my-senzing-mysql
+    export RANCHER_PREFIX=my-senzing-postgresql
     export RANCHER_NAMESPACE_NAME=${RANCHER_PREFIX}-namespace
 
     rancher kubectl port-forward --namespace ${RANCHER_NAMESPACE_NAME} svc/${RANCHER_PREFIX}-senzing-api-server 8889:80
@@ -480,13 +514,15 @@ See `rancher kubectl port-forward ...` above.
     rancher app delete ${RANCHER_PREFIX}-senzing-api-server
     rancher app delete ${RANCHER_PREFIX}-senzing-stream-loader
     rancher app delete ${RANCHER_PREFIX}-senzing-mock-data-generator
-    rancher app delete ${RANCHER_PREFIX}-phpmyadmin
-    rancher app delete ${RANCHER_PREFIX}-mysql-client
-    rancher app delete ${RANCHER_PREFIX}-mysql
+    rancher app delete ${RANCHER_PREFIX}-phppgadmin
+    rancher app delete ${RANCHER_PREFIX}-postgresql-client
+    rancher app delete ${RANCHER_PREFIX}-postgresql
     rancher app delete ${RANCHER_PREFIX}-kafka-test-client
     rancher app delete ${RANCHER_PREFIX}-kafka
     rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-opt-senzing.yaml
+    rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-claim-postgresql.yaml
     rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-opt-senzing.yaml
+    rancher kubectl delete -f ${GIT_REPOSITORY_DIR}/kubernetes/persistent-volume-postgresql.yaml
     rancher namespace delete ${RANCHER_NAMESPACE_NAME}
     rancher projects delete ${RANCHER_PROJECT_NAME}
     ```  
@@ -505,4 +541,5 @@ See `rancher kubectl port-forward ...` above.
 
     ```console
     rancher catalog delete senzing
+    rancher catalog delete jjcollinge
     ```
