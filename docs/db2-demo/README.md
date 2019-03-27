@@ -112,33 +112,15 @@ This repository assumes a working knowledge of:
 
 #### Senzing docker images
 
-1. Because an independent download is needed for the DB2 ODBC client, the
-   [senzing/python-db2-base](https://github.com/Senzing/docker-python-db2-base)
-   docker image must be manually built.
-   Follow the build instructions at
-   [github.com/Senzing/docker-python-db2-base](https://github.com/Senzing/docker-python-db2-base#build)
+1. Build [senzing/senzing-base](https://github.com/Senzing/docker-senzing-base) docker image.
 
 1. Make Senzing docker images.
 
     ```console
-    export BASE_IMAGE=senzing/python-db2-base
-
-    sudo docker build \
-      --tag senzing/db2 \
-      https://github.com/senzing/docker-db2.git
-
-    sudo docker build \
-      --tag senzing/db2express-c \
-      https://github.com/senzing/docker-db2express-c.git
-
-    sudo docker build \
-      --tag senzing/stream-loader \
-      --build-arg BASE_IMAGE=${BASE_IMAGE} \
-      https://github.com/senzing/stream-loader.git
-
-    sudo docker build \
-      --tag senzing/mock-data-generator \
-      https://github.com/senzing/mock-data-generator.git
+    sudo docker build --tag senzing/db2                 https://github.com/senzing/docker-db2.git
+    sudo docker build --tag senzing/db2express-c        https://github.com/senzing/docker-db2express-c.git
+    sudo docker build --tag senzing/stream-loader       https://github.com/senzing/stream-loader.git
+    sudo docker build --tag senzing/mock-data-generator https://github.com/senzing/mock-data-generator.git
     ```
 
 1. Build [senzing/senzing-api-server](https://github.com/Senzing/senzing-api-server#using-docker) docker image.
@@ -504,7 +486,7 @@ to retrieve the images.
     export RANCHER_PREFIX=my
     export RANCHER_NAMESPACE_NAME=${RANCHER_PREFIX}-namespace
 
-    rancher kubectl port-forward --namespace ${RANCHER_NAMESPACE_NAME} svc/${RANCHER_PREFIX}-senzing-api-server 8889:8080
+    rancher kubectl port-forward --namespace ${RANCHER_NAMESPACE_NAME} svc/${RANCHER_PREFIX}-senzing-api-server 8889:80
     ```
 
 ### Test Senzing REST API server
