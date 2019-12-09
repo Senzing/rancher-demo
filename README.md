@@ -1,5 +1,9 @@
 # rancher-demo
 
+## :warning: Obsolete
+
+This repository has not been updated to use the RPM/DEB installation of Senzing.
+
 ## Overview
 
 The following diagram shows the relationship of the Rancher apps, docker containers, and code in this Rancher demonstration.
